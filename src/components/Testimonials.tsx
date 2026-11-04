@@ -2,11 +2,17 @@
 
 import { useLayoutEffect, useRef, useState } from "react";
 import { content } from "@/content";
-import { testimonials } from "@/testimonials";
+import { testimonials as all } from "@/testimonials";
 import { gsap, MOTION_OK, useGsap } from "@/lib/gsap";
+import { SplitText } from "gsap/SplitText";
 import { SplitChars } from "./SplitChars";
 
+gsap.registerPlugin(SplitText);
+
 const { testimonials: copy } = content;
+/** Короче этого отзывы пока скрыты, чтобы все цитаты были примерно одного объёма. */
+const MIN_LENGTH = 200;
+const testimonials = all.filter((t) => t.text.length >= MIN_LENGTH);
 const TOTAL = testimonials.length;
 const pad = (n: number) => String(n).padStart(2, "0");
 const PREVIEW = 248;
@@ -19,12 +25,8 @@ function preview(text: string) {
   return cut.slice(0, space > 0 ? space : PREVIEW).replace(/[\s.,;:!?—–-]+$/, "") + "…";
 }
 
-/** Размер цитаты по длине: короткие крупно, как в референсе, длинные мельче, чтобы блок не раздувался. */
-function quoteSize(len: number) {
-  if (len <= 300) return "text-[24px] leading-[1.15] md:text-[clamp(26px,2.8vw,44px)] md:leading-[1.1]";
-  if (len <= 600) return "text-[19px] leading-[1.3] md:text-[clamp(20px,1.75vw,28px)] md:leading-[1.25]";
-  return "text-[16px] leading-[1.4] md:text-[clamp(16px,1.2vw,20px)] md:leading-[1.45]";
-}
+/** Один размер для всех цитат: как у подзаголовка в блоке проектов (Projects.tsx), чуть крупнее на мобильном. */
+const QUOTE_SIZE = "text-[18px] leading-[1.4] md:text-[clamp(18px,1.5vw,22px)] md:leading-[1.45]";
 
 const initials = (name: string) =>
   name
@@ -58,27 +60,52 @@ export function Testimonials() {
       const tl = gsap.timeline({ scrollTrigger: st });
       tl.from(q(".reviews-char"), { yPercent: 115, stagger: 0.025, duration: 0.9, ease: "power4.out" })
         .from(q(".reviews-fade"), { y: 24, opacity: 0, stagger: 0.08, duration: 0.8, ease: "power3.out" }, 0.2)
-        .fromTo(q(".reviews-word"), { opacity: 0.15 }, { opacity: 1, stagger: { amount: 0.9 }, duration: 0.4, ease: "none" }, 0.4)
         .from(q(".reviews-rule"), { scaleX: 0, transformOrigin: "left", duration: 1.2, ease: "expo.out" }, 0)
         .from(q(".reviews-vrule"), { scaleY: 0, transformOrigin: "top", duration: 1.2, ease: "power2.out", stagger: 0.1 }, 0);
     });
   });
 
-  // новый отзыв: слова «загораются» слева направо, автор выезжает снизу
+  // Цитата делится на строки внутри масок, строки выезжают снизу — как буквы заголовков на сайте.
+  // Первый раз — по скроллу, при смене отзыва — сразу; при «Show more» текст просто перестраивается.
+  const shownIndex = useRef(index);
   useLayoutEffect(() => {
-    if (first.current) {
-      first.current = false;
-      return;
-    }
     const el = root.current!;
-    if (!window.matchMedia(MOTION_OK).matches) return;
-    const tl = gsap.timeline();
-    tl.fromTo(el.querySelectorAll(".reviews-word"), { opacity: 0.15 }, { opacity: 1, stagger: { amount: 0.7 }, duration: 0.35, ease: "none" })
-      .fromTo(el.querySelector(".reviews-quote"), { y: 16 }, { y: 0, duration: 0.6, ease: "power3.out" }, 0)
-      .fromTo(el.querySelectorAll(".reviews-person > *"), { y: 16, opacity: 0 }, { y: 0, opacity: 1, stagger: 0.06, duration: 0.5, ease: "power3.out" }, 0)
-      .fromTo(el.querySelector(".reviews-current"), { yPercent: 100 }, { yPercent: 0, duration: 0.5, ease: "power3.out" }, 0);
-    return () => void tl.kill();
-  }, [index]);
+    const text = el.querySelector<HTMLElement>("[data-current] .reviews-text");
+    if (!text || !window.matchMedia(MOTION_OK).matches) return;
+    const isFirst = first.current;
+    const changed = shownIndex.current !== index;
+    first.current = false;
+    shownIndex.current = index;
+    const more = el.querySelector("[data-current] .reviews-more");
+    let extra: gsap.core.Timeline | undefined;
+    const split = SplitText.create(text.querySelectorAll("p"), {
+      type: "lines",
+      mask: "lines",
+      linesClass: "reviews-line",
+      autoSplit: true,
+      onSplit(self) {
+        if (!isFirst && !changed) return;
+        return gsap.from(self.lines, {
+          yPercent: 110,
+          stagger: 0.07,
+          duration: 0.9,
+          ease: "power4.out",
+          scrollTrigger: isFirst ? { trigger: el, start: "top 75%", once: true } : undefined,
+        });
+      },
+    });
+    if (changed) {
+      extra = gsap.timeline();
+      extra
+        .fromTo(el.querySelectorAll(".reviews-person > *"), { y: 16, opacity: 0 }, { y: 0, opacity: 1, stagger: 0.06, duration: 0.6, ease: "power3.out" }, 0.1)
+        .fromTo(el.querySelector(".reviews-current"), { yPercent: 100 }, { yPercent: 0, duration: 0.6, ease: "power3.out" }, 0);
+      if (more) extra.fromTo(more, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0.35);
+    }
+    return () => {
+      extra?.kill();
+      split.revert();
+    };
+  }, [index, expanded]);
 
   const go = (step: number) => {
     if (busy.current) return;
@@ -91,18 +118,19 @@ export function Testimonials() {
       setIndex(next);
       return;
     }
-    gsap.to(el.querySelectorAll(".reviews-quote, .reviews-person"), {
-      opacity: 0,
-      y: -12,
-      duration: 0.25,
-      ease: "power2.in",
-      onComplete: () => {
-        gsap.set(el.querySelectorAll(".reviews-quote, .reviews-person"), { opacity: 1, y: 0 });
-        busy.current = false;
-        setExpanded(false);
-        setIndex(next);
-      },
-    });
+    // старые строки уезжают вверх в свои маски, автор и кнопка гаснут
+    const out = el.querySelectorAll(".reviews-person, [data-current] .reviews-more");
+    gsap
+      .timeline({
+        onComplete: () => {
+          gsap.set(out, { clearProps: "opacity,transform" });
+          busy.current = false;
+          setExpanded(false);
+          setIndex(next);
+        },
+      })
+      .to(el.querySelectorAll("[data-current] .reviews-line"), { yPercent: -110, stagger: 0.03, duration: 0.4, ease: "power3.in" }, 0)
+      .to(out, { opacity: 0, y: -12, duration: 0.3, ease: "power2.in" }, 0);
   };
 
   // свайп на тач-экранах
@@ -144,7 +172,7 @@ export function Testimonials() {
           rel="noopener noreferrer"
           className="reviews-fade group flex items-end gap-3 px-6 pb-10 md:flex-col md:items-start md:gap-2 md:px-[clamp(24px,3vw,48px)] md:pb-16"
         >
-          <span className="text-[28px] leading-none text-cream/60 transition-colors group-hover:text-cream md:text-[clamp(28px,2.4vw,40px)]">{TOTAL}</span>
+          <span className="text-[28px] leading-none text-cream/60 transition-colors group-hover:text-cream md:text-[clamp(28px,2.4vw,40px)]">{all.length}</span>
           <span className="max-w-[200px] pb-0.5 text-[16px] leading-[1.25] text-cream/50 transition-colors group-hover:text-cream md:text-[18px]">
             {copy.countLabel} <span aria-hidden>↗</span>
           </span>
@@ -186,26 +214,24 @@ export function Testimonials() {
               <div
                 key={k}
                 aria-hidden={!current}
-                className={`[grid-area:1/1] ${quoteSize(text.length)} ${current ? "" : "invisible max-md:hidden"}`}
+                data-current={current || undefined}
+                className={`[grid-area:1/1] ${QUOTE_SIZE} ${current ? "" : "invisible max-md:hidden"}`}
               >
-                {text.split("\n\n").map((para, p) => (
-                  <p key={p} className="mb-[0.6em] last:mb-0">
-                    {current
-                      ? para.split(" ").map((w, i) => (
-                          <span key={i} className="reviews-word">
-                            {w}{" "}
-                          </span>
-                        ))
-                      : para}
-                  </p>
-                ))}
+                {/* key меняется вместе с текстом: React пересоздаёт блок целиком, а не правит строки, которые нарезал SplitText */}
+                <div key={current ? `c${k}${open ? "o" : ""}` : "n"} className="reviews-text">
+                  {text.split("\n\n").map((para, p) => (
+                    <p key={p} className="mb-[0.6em] last:mb-0">
+                      {para}
+                    </p>
+                  ))}
+                </div>
                 {long && (
                   <button
                     type="button"
                     tabIndex={current ? 0 : -1}
                     onClick={() => setExpanded((v) => !v)}
                     aria-expanded={open}
-                    className="mt-6 flex cursor-pointer items-center gap-2 text-[16px] leading-none text-cream/60 transition-colors hover:text-cream md:text-[18px]"
+                    className="reviews-more mt-6 flex cursor-pointer items-center gap-2 text-[16px] leading-none text-cream/60 transition-colors hover:text-cream md:text-[18px]"
                   >
                     {open ? copy.less : copy.more}
                     <svg width="12" height="8" viewBox="0 0 12 8" fill="none" aria-hidden className={`transition-transform duration-300 ${open ? "rotate-180" : ""}`}>

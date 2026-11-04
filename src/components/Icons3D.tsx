@@ -331,9 +331,10 @@ export function Icons3D({ progress, customIconSrc, className = "" }: Props) {
       const items = [
         // fx/fy — десктоп; mfx/mfy — мобильный (расстановка как в референсе: Figma слева сверху,
         // вторая иконка правее над текстом, плашка с пером под текстом на линии)
-        { obj: figmaIcon, fx: -0.34, fy: 0.22, mfx: -0.28, mfy: 0.32, scale: 1.05, appear: 0.05, rot: [0.15, -0.45, -0.12], phase: 0 },
-        { obj: slot, fx: 0.36, fy: 0.22, mfx: 0.12, mfy: 0.27, scale: 1.1, appear: 0.18, rot: [-0.2, 0.5, 0.08], phase: 1.7 },
-        { obj: plate, fx: 0.02, fy: -0.28, mfx: -0.12, mfy: -0.3, scale: 1.45, appear: 0.3, rot: [-0.35, 0.15, 0.35], phase: 3.1 },
+        // mscale — размер на мобильном (Figma чуть меньше, иконка Claude Code крупнее), плашка по центру
+        { obj: figmaIcon, fx: -0.34, fy: 0.22, mfx: -0.28, mfy: 0.32, scale: 1.05, mscale: 0.85, appear: 0.05, rot: [0.15, -0.45, -0.12], phase: 0 },
+        { obj: slot, fx: 0.36, fy: 0.22, mfx: 0.14, mfy: 0.27, scale: 1.1, mscale: 1.45, appear: 0.18, rot: [-0.2, 0.5, 0.08], phase: 1.7 },
+        { obj: plate, fx: 0.02, fy: -0.28, mfx: 0, mfy: -0.3, scale: 1.45, mscale: 1.45, appear: 0.3, rot: [-0.35, 0.15, 0.35], phase: 3.1 },
       ];
       items.forEach((it) => scene.add(it.obj));
 
@@ -384,7 +385,7 @@ export function Icons3D({ progress, customIconSrc, className = "" }: Props) {
 
         items.forEach((it) => {
           const a = smooth(it.appear, it.appear + 0.18, p);
-          const s = it.scale * unit * a;
+          const s = (narrow ? it.mscale : it.scale) * unit * a;
           it.obj.scale.setScalar(Math.max(s, 0.0001));
           it.obj.visible = a > 0.001;
           it.obj.position.set(

@@ -8,7 +8,7 @@ import { DotGrid } from "./DotGrid";
 
 const { statement } = content;
 
-/** Тёмная закреплённая секция: слова «загораются» по мере скролла, снизу рисуется линия, вокруг плавают 3D-иконки. */
+/** Тёмная закреплённая секция (закрепление короткое, 60vh, чтобы блок можно было быстро пролистать): слова «загораются» по мере скролла, снизу рисуется линия, вокруг плавают 3D-иконки. */
 export function Statement() {
   const root = useRef<HTMLDivElement>(null);
   const progress = useRef(0);
@@ -34,7 +34,7 @@ export function Statement() {
       tl.from(q(".statement-line"), { scaleX: 0, duration: 0.3, ease: "power2.out" }, 0);
 
       // слова загораются быстро, как в референсе: начинают, пока секция въезжает на экран,
-      // и все горят примерно к 20% закреплённого скролла
+      // и все горят примерно к 35% закреплённого скролла
       gsap.fromTo(
         q(".statement-word"),
         { opacity: 0.18 },
@@ -46,7 +46,7 @@ export function Statement() {
           scrollTrigger: {
             trigger: root,
             start: "top 60%",
-            end: () => `top+=${(root.offsetHeight - window.innerHeight) * 0.2} top`,
+            end: () => `top+=${(root.offsetHeight - window.innerHeight) * 0.35} top`,
             scrub: 0.5,
             invalidateOnRefresh: true,
           },
@@ -57,7 +57,7 @@ export function Statement() {
   });
 
   return (
-    <div ref={root} className="relative z-10 h-[250vh]">
+    <div ref={root} className="relative z-10 h-[160vh]">
       <section className="sticky top-0 flex h-svh w-full items-center justify-center overflow-hidden bg-ink">
         {/* те же точки, что в блоке с фото: под курсором увеличиваются и белеют */}
         <DotGrid className="absolute inset-0 h-full w-full" />

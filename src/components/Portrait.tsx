@@ -83,16 +83,17 @@ export function Portrait() {
       </div>
 
       <section className="relative h-[150vh] w-full overflow-x-clip bg-accent">
-        <div className="sticky top-0 flex h-svh items-end justify-center overflow-hidden">
+        {/* h-dvh: высота меняется вместе с адресной строкой, фото всегда стоит на нижнем крае экрана */}
+        <div className="sticky top-0 flex h-dvh items-end justify-center overflow-hidden">
           {/* точки под курсором увеличиваются и белеют */}
           <DotGrid className="absolute inset-0 h-full w-full" />
-          {/* подпись позади фото */}
+          {/* подпись позади фото; на мобильном фото на всю ширину, поэтому подпись над головой */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={content.hero.signatureWhite}
             alt=""
             aria-hidden
-            className="portrait-sign pointer-events-none absolute top-[38%] left-1/2 z-[1] w-[min(88vw,1100px)] -translate-x-1/2 -translate-y-1/2 select-none"
+            className="portrait-sign pointer-events-none absolute top-[9%] md:top-[38%] left-1/2 z-[1] w-[min(88vw,1100px)] -translate-x-1/2 -translate-y-1/2 select-none"
             draggable={false}
           />
           {/* eslint-disable-next-line @next/next/no-img-element */}
