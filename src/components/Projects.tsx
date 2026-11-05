@@ -2,11 +2,10 @@
 
 import Image from "next/image";
 import { useRef, type CSSProperties } from "react";
-import { content } from "@/content";
+import { useContent } from "@/i18n/LocaleProvider";
 import { gsap, MOTION_OK, useGsap } from "@/lib/gsap";
 import { SplitChars } from "./SplitChars";
 
-const { projects } = content;
 
 /** Плейсхолдер логотипа проекта: значок + название. Замените на <img> с логотипом. */
 function LogoPlaceholder({ name, index }: { name: string; index: number }) {
@@ -22,6 +21,7 @@ function LogoPlaceholder({ name, index }: { name: string; index: number }) {
 
 /** Сетка проектов: заголовок выезжает по буквам, карточки появляются при скролле, за курсором ездит кнопка «View project» с анимированными стрелками. */
 export function Projects() {
+  const { projects } = useContent();
   const root = useRef<HTMLElement>(null);
   const cursor = useRef<HTMLDivElement>(null);
 

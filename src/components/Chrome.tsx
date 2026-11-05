@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { content } from "@/content";
+import { useContent, useLocale, useSetLocale } from "@/i18n/LocaleProvider";
+import { LOCALES, LOCALE_LABELS } from "@/i18n/config";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { ContactForm } from "./ContactForm";
 
@@ -32,6 +33,45 @@ async function copyText(text: string) {
   }
 }
 
+/**
+ * Переключатель языка — пилюля из двух сегментов, как на sarottofabio.com: активный язык залит.
+ * Текст на странице меняется сразу, без перезагрузки. Показывается только там, где есть LocaleProvider (главная).
+ * full — полные названия («English / Français») для мобильного меню; dark — для чёрного фона раскрытого меню.
+ */
+function LangSwitch({ full = false, dark = false, className = "" }: { full?: boolean; dark?: boolean; className?: string }) {
+  const locale = useLocale();
+  const setLocale = useSetLocale();
+  const { menu } = useContent();
+  if (!setLocale) return null;
+  return (
+    <div
+      role="group"
+      aria-label={menu.language}
+      // обводка 1px: чёрная в шапке, белая в раскрытом мобильном меню; выбранный язык — на отдельной скруглённой плашке внутри
+      className={`flex items-center gap-1 rounded-full border p-1 ${dark ? "border-white" : "border-ink bg-cream"} ${className}`}
+    >
+      {LOCALES.map((l) => {
+        const active = l === locale;
+        const tone = dark
+          ? active ? "bg-cream text-ink" : "text-cream/70 hover:text-cream"
+          : active ? "bg-ink text-cream" : "text-muted hover:text-ink";
+        return (
+          <button
+            key={l}
+            type="button"
+            lang={l}
+            aria-pressed={active}
+            onClick={() => setLocale(l)}
+            className={`flex h-full cursor-pointer items-center rounded-full px-[14px] text-[14px] font-medium transition-colors duration-300 ${tone}`}
+          >
+            {full ? LOCALE_LABELS[l].full : LOCALE_LABELS[l].short}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 /** Якоря (#…) получают префикс страницы, ссылки на другие страницы (/about) идут как есть. */
 const menuHref = (base: string, href: string) => (href.startsWith("/") ? href : base + href);
 
@@ -46,6 +86,7 @@ const EASE = "expo.out"; // близко к cubic-bezier(.22, 1, .36, 1)
  * чёрный круг и заливает её, появляются пункты меню; «Menu» с крестиком остаются внизу карточки.
  */
 export function MenuPill({ linkBase = "" }: { linkBase?: string }) {
+  const { menu, contact } = useContent();
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
@@ -62,6 +103,7 @@ export function MenuPill({ linkBase = "" }: { linkBase?: string }) {
   const circle = useRef<HTMLSpanElement>(null);
   const skin = useRef<HTMLSpanElement>(null);
   const list = useRef<HTMLDivElement>(null);
+  const lang = useRef<HTMLDivElement>(null);
   const bar = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const backdrop = useRef<HTMLDivElement>(null);
@@ -113,12 +155,12 @@ export function MenuPill({ linkBase = "" }: { linkBase?: string }) {
   const menuTl = useRef<gsap.core.Timeline | null>(null);
   const animateMobile = (isOpen: boolean) => {
     const c = card.current!;
-    const items = list.current!.querySelectorAll(".sheet-item");
+    const items = c.querySelectorAll(".sheet-item");
     menuTl.current?.kill();
     document.documentElement.style.overflow = isOpen ? "hidden" : "";
     const tl = gsap.timeline();
     if (isOpen) {
-      gsap.set(list.current, { display: "flex" });
+      gsap.set([list.current, lang.current], { display: "flex" });
       gsap.set(items, { opacity: 0, y: 12 });
       // карточка растягивается на весь экран; кнопка стоит в 40px от низа (bottom-10), поэтому опускаем её отрицательным отступом
       tl.to(c, { width: window.innerWidth, height: window.innerHeight, marginBottom: -40, borderRadius: 0, duration: 0.8, ease: EASE }, 0)
@@ -132,7 +174,7 @@ export function MenuPill({ linkBase = "" }: { linkBase?: string }) {
         .set(skin.current, { clearProps: "backgroundColor,borderColor" }, 0)
         .to(c, { width: 150, height: 48, marginBottom: 0, borderRadius: 24, duration: 0.8, ease: EASE }, 0)
         .to(bar.current, { paddingLeft: 20, paddingRight: 16, paddingBottom: 0, duration: 0.8, ease: EASE }, 0)
-        .set(list.current, { display: "none" }, 0.15)
+        .set([list.current, lang.current], { display: "none" }, 0.15)
         .to(circle.current, { bottom: "-200%", duration: 0.8, ease: EASE }, 0)
         // возвращаем размеры классам, чтобы не мешать десктопу после ресайза
         .set([c, bar.current], { clearProps: "width,height,marginBottom,borderRadius,padding" });
@@ -172,7 +214,7 @@ export function MenuPill({ linkBase = "" }: { linkBase?: string }) {
   }, [open]);
 
   const onCopy = async () => {
-    await copyText(content.contact.email);
+    await copyText(contact.email);
     setCopied(true);
     setTimeout(() => setCopied(false), 1800);
   };
@@ -191,13 +233,16 @@ export function MenuPill({ linkBase = "" }: { linkBase?: string }) {
         data-menu-pill
         className="fixed bottom-10 left-1/2 z-[60] -translate-x-1/2 lg:top-8 lg:right-[calc(5%+24px)] lg:bottom-auto lg:left-auto lg:translate-x-0"
       >
+        {/* переключатель языка слева от кнопки, на одной линии с ней (десктоп) */}
+        <LangSwitch className="absolute top-0 right-[calc(100%+12px)] hidden h-11 lg:flex" />
+
         {/* десктопная выпадающая панель */}
         <div
           ref={panel}
           className="absolute top-[calc(100%+12px)] right-0 hidden w-[340px] bg-cream p-3 shadow-[0_20px_60px_rgba(0,0,0,.18)]"
         >
           <nav className="flex flex-col">
-            {content.menu.links.map((l) => (
+            {menu.links.map((l) => (
               <a
                 key={l.label}
                 href={menuHref(linkBase, l.href)}
@@ -230,7 +275,7 @@ export function MenuPill({ linkBase = "" }: { linkBase?: string }) {
 
           {/* пункты мобильного меню */}
           <div ref={list} className="relative z-10 hidden flex-1 flex-col items-center justify-center gap-6 pt-8 pb-2 lg:hidden!">
-            {content.menu.links.map((l) => (
+            {menu.links.map((l) => (
               <a key={l.label} href={menuHref(linkBase, l.href)} onClick={l.form ? openForm : () => setOpen(false)} aria-haspopup={l.form ? "dialog" : undefined} className="sheet-item font-display block text-[32px] leading-none text-cream uppercase">
                 {l.label}
               </a>
@@ -239,8 +284,13 @@ export function MenuPill({ linkBase = "" }: { linkBase?: string }) {
               onClick={onCopy}
               className="sheet-item mt-2 flex h-10 items-center rounded-full border border-white/40 px-5 text-[14px] text-cream transition-colors active:bg-white active:text-ink"
             >
-              {copied ? content.menu.emailCopied : content.menu.emailButton}
+              {copied ? menu.emailCopied : menu.emailButton}
             </button>
+          </div>
+
+          {/* мобильный: переключатель языка внизу раскрытого меню, на одной линии с «Close» и крестиком */}
+          <div ref={lang} className="sheet-item pointer-events-none absolute inset-x-0 bottom-6 z-20 hidden justify-center lg:hidden! [&>*]:pointer-events-auto">
+            <LangSwitch full dark className="h-10" />
           </div>
 
           <button
@@ -249,7 +299,7 @@ export function MenuPill({ linkBase = "" }: { linkBase?: string }) {
             aria-expanded={open}
             className="relative z-10 flex h-12 w-full shrink-0 items-center justify-between gap-6 pr-4 pl-5 text-[13px] lg:h-11 lg:justify-start lg:text-[17px]"
           >
-            <span>{open ? "Close" : "Menu"}</span>
+            <span>{open ? menu.close : menu.open}</span>
             <span className="relative block h-3 w-5" aria-hidden>
               <span className={`absolute left-0 h-[1.5px] w-full bg-cream transition-all duration-300 ${open ? "top-1/2 rotate-45" : "top-[2px]"}`} />
               <span className={`absolute left-0 h-[1.5px] w-full bg-cream transition-all duration-300 ${open ? "top-1/2 -rotate-45" : "top-[9px]"}`} />

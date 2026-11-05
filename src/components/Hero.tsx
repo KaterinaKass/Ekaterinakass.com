@@ -2,6 +2,7 @@
 
 import { useId, useRef, useState } from "react";
 import { content } from "@/content";
+import { useContent } from "@/i18n/LocaleProvider";
 import { gsap, MOTION_OK, useGsap } from "@/lib/gsap";
 import { SplitChars } from "./SplitChars";
 import { CursorBubble } from "./CursorBubble";
@@ -114,6 +115,7 @@ function writeSignature(sign: Element, duration: number) {
 }
 
 export function Hero() {
+  const { hero } = useContent();
   const root = useRef<HTMLElement>(null);
   const [introDone, setIntroDone] = useState(false);
 

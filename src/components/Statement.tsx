@@ -1,15 +1,15 @@
 "use client";
 
-import { Fragment, useRef } from "react";
-import { content } from "@/content";
+import { Fragment, useLayoutEffect, useRef } from "react";
+import { useContent } from "@/i18n/LocaleProvider";
 import { gsap, MOTION_OK, ScrollTrigger, useGsap } from "@/lib/gsap";
 import { Icons3D } from "./Icons3D";
 import { DotGrid } from "./DotGrid";
 
-const { statement } = content;
 
 /** Тёмная закреплённая секция (закрепление короткое, 60vh, чтобы блок можно было быстро пролистать): слова «загораются» по мере скролла, снизу рисуется линия, вокруг плавают 3D-иконки. */
 export function Statement() {
+  const { statement } = useContent();
   const root = useRef<HTMLDivElement>(null);
   const progress = useRef(0);
 
@@ -33,28 +33,38 @@ export function Statement() {
       });
       tl.from(q(".statement-line"), { scaleX: 0, duration: 0.3, ease: "power2.out" }, 0);
 
-      // слова загораются быстро, как в референсе: начинают, пока секция въезжает на экран,
-      // и все горят примерно к 35% закреплённого скролла
-      gsap.fromTo(
-        q(".statement-word"),
-        { opacity: 0.18 },
-        {
-          opacity: 1,
-          stagger: 0.1,
-          duration: 0.3,
-          ease: "none",
-          scrollTrigger: {
-            trigger: root,
-            start: "top 60%",
-            end: () => `top+=${(root.offsetHeight - window.innerHeight) * 0.35} top`,
-            scrub: 0.5,
-            invalidateOnRefresh: true,
-          },
-        },
-      );
       if (path) tl.to(path, { strokeDashoffset: 0, duration: 0.9, ease: "none" }, 0.25);
     });
   });
+
+  // слова загораются быстро, как в референсе: начинают, пока секция въезжает на экран,
+  // и все горят примерно к 35% закреплённого скролла. Отдельно от остального: при смене языка
+  // слов становится другое число, и анимация пересоздаётся под новые слова
+  useLayoutEffect(() => {
+    const el = root.current!;
+    const ctx = gsap.context(() => {
+      gsap.matchMedia().add(MOTION_OK, () => {
+        gsap.fromTo(
+          gsap.utils.toArray<HTMLElement>(".statement-word", el),
+          { opacity: 0.18 },
+          {
+            opacity: 1,
+            stagger: 0.1,
+            duration: 0.3,
+            ease: "none",
+            scrollTrigger: {
+              trigger: el,
+              start: "top 60%",
+              end: () => `top+=${(el.offsetHeight - window.innerHeight) * 0.35} top`,
+              scrub: 0.5,
+              invalidateOnRefresh: true,
+            },
+          },
+        );
+      });
+    }, el);
+    return () => ctx.revert();
+  }, [statement.words]);
 
   return (
     <div ref={root} className="relative z-10 h-[160vh]">

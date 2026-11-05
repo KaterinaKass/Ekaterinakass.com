@@ -238,6 +238,7 @@ export const content = {
     subject: "Subject",
     subjects: ["Project inquiry", "New opportunity", "Collaboration", "Speaking / press", "Something else"],
     message: "Message",
+    placeholders: { name: "Jane Doe", email: "janedoe@company.com", message: "A few lines about what you have in mind..." },
     send: "Send message",
     close: "Close",
   },
@@ -252,6 +253,22 @@ export const content = {
     ] as { label: string; href: string; form?: boolean }[],
     emailButton: "Email me",
     emailCopied: "Copied!",
+    open: "Menu",
+    close: "Close",
+    // переключатель языка рядом с кнопкой меню
+    language: "Language",
+  },
+
+  // общие подписи страниц кейсов (CyberrCase.tsx)
+  caseStudy: {
+    backToWork: "Back to work",
+    views: { summary: "Summary", full: "Full Case Study" },
+    viewsLabel: "Case study view",
+    onThisPage: "On this page",
+    scriptsTitle: "Research scripts",
+    scriptsText: "Interviews & usability tests",
   },
 
 };
+
+export type Content = typeof content;

@@ -10,22 +10,31 @@ import { ProcessSection } from "@/components/ProcessSection";
 import { Testimonials } from "@/components/Testimonials";
 import { Footer } from "@/components/Footer";
 import { FrameLines, MenuPill } from "@/components/Chrome";
+import { LocaleProvider, RemountOnLocale } from "@/i18n/LocaleProvider";
 
 export default function Home() {
   return (
-    <main>
-      <SmoothScroll />
-      <Hero />
-      <Portrait />
-      <Statement />
-      {/* <Services /> */}
-      <ShippedWork />
-      <ProcessSection />
-      {/* <Projects /> */}
-      <Testimonials />
-      <Footer />
-      <FrameLines />
-      <MenuPill />
-    </main>
+    // язык переключается на месте (EN / FR у кнопки меню); блоки с выезжающими по скроллу буквами
+    // пересоздаются при смене языка, чтобы появление шло уже с новым текстом
+    <LocaleProvider>
+      <main>
+        <SmoothScroll />
+        <Hero />
+        <Portrait />
+        <Statement />
+        {/* <Services /> */}
+        <ShippedWork />
+        <RemountOnLocale>
+          <ProcessSection />
+        </RemountOnLocale>
+        {/* <Projects /> */}
+        <RemountOnLocale>
+          <Testimonials />
+          <Footer />
+        </RemountOnLocale>
+        <FrameLines />
+        <MenuPill />
+      </main>
+    </LocaleProvider>
   );
 }

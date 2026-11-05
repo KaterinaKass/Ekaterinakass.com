@@ -2,10 +2,10 @@
 
 import { useRef } from "react";
 import { content } from "@/content";
+import { useContent } from "@/i18n/LocaleProvider";
 import { gsap, MOTION_OK, useGsap } from "@/lib/gsap";
 import { DotGrid } from "./DotGrid";
 
-const { portrait } = content;
 const COLUMNS = 5;
 
 /**
@@ -13,6 +13,7 @@ const COLUMNS = 5;
  * открывая портрет. Дальше на скролле выезжают плашки с ролями.
  */
 export function Portrait() {
+  const { portrait } = useContent();
   const root = useRef<HTMLDivElement>(null);
 
   useGsap(root, ({ q, root }) => {
@@ -108,9 +109,9 @@ export function Portrait() {
         <div className="roles-track absolute inset-x-0 bottom-0 h-[60vh]">
           {/* на десктопе плашки разнесены по ширине, как в референсе */}
           <div className="sticky top-[70svh] z-[3] mx-auto flex flex-wrap items-center justify-center gap-3 px-4 pb-10 md:w-[84%] md:justify-between md:px-0">
-            {portrait.roles.map((r) => (
+            {portrait.roles.map((r, i) => (
               <span
-                key={r}
+                key={i}
                 className="role-chip rounded-full bg-ink px-5 py-2 text-[20px] whitespace-nowrap text-white md:text-[28px]"
               >
                 {r}

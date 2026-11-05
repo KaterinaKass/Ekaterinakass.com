@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { content } from "@/content";
+import { useContent } from "@/i18n/LocaleProvider";
 
 const { shipped } = content;
 const N = shipped.items.length;
@@ -60,6 +61,7 @@ const cardW = (w: number) => clamp(Math.round(0.3 * w), 420, 700);
 const railStep = (w: number) => Math.max(cardW(w) + clamp(Math.round(0.035 * w), 48, 170), Math.round(0.25 * w));
 
 function Header({ className = "" }: { className?: string }) {
+  const { shipped } = useContent();
   return (
     <div className={`text-center ${className}`}>
       <h2 className="font-display text-[32px] leading-none text-ink uppercase md:text-[clamp(40px,4.4vw,64px)]">{shipped.title}</h2>
@@ -128,6 +130,7 @@ export function ShippedWork() {
 }
 
 function List({ card }: { card: { w: number; h: number } }) {
+  const { shipped } = useContent();
   const pad = `max(calc((100vw - ${card.w}px) / 2), 16px)`;
   return (
     <section id="shipped" className="relative z-[45] flex h-svh w-full flex-col items-center gap-[clamp(16px,3vh,32px)] bg-cream pt-[10vh] pb-[112px] lg:pb-[clamp(12px,3.5vh,36px)]">
@@ -154,6 +157,7 @@ function List({ card }: { card: { w: number; h: number } }) {
 }
 
 function Scene() {
+  const { shipped } = useContent();
   const wrap = useRef<HTMLElement>(null);
   const titleLayer = useRef<HTMLDivElement>(null);
   const title = useRef<HTMLDivElement>(null);

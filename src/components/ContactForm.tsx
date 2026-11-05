@@ -3,10 +3,11 @@
 import { useEffect, useRef, useSyncExternalStore, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { content } from "@/content";
+import { useContent } from "@/i18n/LocaleProvider";
 import { gsap } from "@/lib/gsap";
 import { lockScroll } from "@/lib/scroll";
 
-const { contactForm: t, contact } = content;
+const { contact } = content;
 const noop = () => () => {};
 const EASE = "expo.out"; // тот же, что у кнопки меню
 
@@ -38,17 +39,18 @@ export function submitContact(e: FormEvent<HTMLFormElement>) {
 
 /** Поля формы и кнопка — общие для всплывающей формы и формы на странице About. tone: "dark" — для синего/чёрного фона, "light" — для белого. */
 export function ContactFields({ itemClass = "", tone = "dark" }: { itemClass?: string; tone?: keyof typeof TONE }) {
+  const t = useContent().contactForm;
   const { label, field } = TONE[tone];
   return (
     <>
       <label className={`${label} ${itemClass}`}>
         {t.name}
-        <input name="name" required autoComplete="name" placeholder="Jane Doe" className={field} />
+        <input name="name" required autoComplete="name" placeholder={t.placeholders.name} className={field} />
       </label>
 
       <label className={`${label} ${itemClass}`}>
         {t.email}
-        <input name="email" type="email" required autoComplete="email" placeholder="janedoe@company.com" className={field} />
+        <input name="email" type="email" required autoComplete="email" placeholder={t.placeholders.email} className={field} />
       </label>
 
       <label className={`${label} ${itemClass}`}>
@@ -76,7 +78,7 @@ export function ContactFields({ itemClass = "", tone = "dark" }: { itemClass?: s
 
       <label className={`${label} ${itemClass}`}>
         {t.message}
-        <textarea name="message" required rows={5} placeholder="A few lines about what you have in mind..." className={`${field} resize-none`} />
+        <textarea name="message" required rows={5} placeholder={t.placeholders.message} className={`${field} resize-none`} />
       </label>
 
       <button
@@ -98,6 +100,7 @@ export function ContactFields({ itemClass = "", tone = "dark" }: { itemClass?: s
  * Отправка: открывает почтовый клиент с готовым письмом (бэкенда у сайта нет).
  */
 export function ContactForm({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const t = useContent().contactForm;
   // портал в body: у футера свой слой (z-10), внутри него модалка оказалась бы под рамками и меню
   const mounted = useSyncExternalStore(noop, () => true, () => false);
   const wrap = useRef<HTMLDivElement>(null);

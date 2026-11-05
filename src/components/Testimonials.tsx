@@ -1,7 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
-import { content } from "@/content";
+import { useContent, useTestimonials } from "@/i18n/LocaleProvider";
 import { testimonials as all } from "@/testimonials";
 import { gsap, MOTION_OK, useGsap } from "@/lib/gsap";
 import { SplitText } from "gsap/SplitText";
@@ -9,11 +9,10 @@ import { SplitChars } from "./SplitChars";
 
 gsap.registerPlugin(SplitText);
 
-const { testimonials: copy } = content;
 /** Короче этого отзывы пока скрыты, чтобы все цитаты были примерно одного объёма. */
 const MIN_LENGTH = 200;
-const testimonials = all.filter((t) => t.text.length >= MIN_LENGTH);
-const TOTAL = testimonials.length;
+const shown = all.flatMap((t, i) => (t.text.length >= MIN_LENGTH ? [i] : []));
+const TOTAL = shown.length;
 const pad = (n: number) => String(n).padStart(2, "0");
 const PREVIEW = 248;
 
@@ -46,6 +45,10 @@ function Arrow({ dir }: { dir: "prev" | "next" }) {
 
 /** Отзывы с LinkedIn: заголовок и число отзывов сверху, цитата по центру, слева автор, справа счётчик и стрелки. */
 export function Testimonials() {
+  const copy = useContent().testimonials;
+  // набор отзывов отбирается по длине английского оригинала, чтобы на обоих языках он был одинаковым
+  const localized = useTestimonials();
+  const testimonials = shown.map((i) => localized[i]);
   const root = useRef<HTMLElement>(null);
   const [index, setIndex] = useState(0);
   const [expanded, setExpanded] = useState(false);

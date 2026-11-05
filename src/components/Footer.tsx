@@ -1,14 +1,13 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { content } from "@/content";
+import { useContent } from "@/i18n/LocaleProvider";
 import { gsap, MOTION_OK, useGsap } from "@/lib/gsap";
 import { SplitChars } from "./SplitChars";
 import { PixelAssemble } from "./PixelAssemble";
 import { ContactForm } from "./ContactForm";
 import { attachNameHover, HOVER_MQ } from "@/lib/nameHover";
 
-const { footer, hero } = content;
 
 /** Иконки соцсетей как в референсе: 48px, контурные знаки (сетка 24, линия 2) без круга вокруг. */
 function Icon({ name }: { name: "instagram" | "linkedin" | "mail" }) {
@@ -68,6 +67,7 @@ function WhatsAppIcon() {
 
 /** Финальный синий экран: большое имя, аватар, призыв и контакты. */
 export function Footer() {
+  const { footer, hero } = useContent();
   const root = useRef<HTMLElement>(null);
   const [formOpen, setFormOpen] = useState(false);
   const closeForm = useCallback(() => setFormOpen(false), []);
@@ -128,8 +128,8 @@ export function Footer() {
           </p>
           {/* шрифт шире, чем Trobika в референсе, поэтому кегль чуть меньше: строки получаются той же ширины (28px на мобильном) */}
           <h3 className="font-wide text-[28px] leading-none text-cream md:text-[clamp(30px,3.4vw,80px)]">
-            {footer.big.map((line) => (
-              <span key={line} className="block">
+            {footer.big.map((line, i) => (
+              <span key={i} className="block">
                 <SplitChars text={line} charClass="footer-big-char" />
               </span>
             ))}

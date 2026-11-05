@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { DndContext, DragOverlay, PointerSensor, closestCenter, defaultDropAnimationSideEffects, useSensor, useSensors, type DropAnimation } from "@dnd-kit/core";
 import { SortableContext, arrayMove, useSortable } from "@dnd-kit/sortable";
 import { content } from "@/content";
+import { useContent } from "@/i18n/LocaleProvider";
 import { gsap, MOTION_OK, useGsap } from "@/lib/gsap";
 import { SplitChars } from "./SplitChars";
 
@@ -356,6 +357,7 @@ export function Odometer({ value, started, delay, still }: { value: string; star
 }
 
 function ResultsTile({ className }: { className: string }) {
+  const copy = useContent().process;
   const tile = useRef<HTMLDivElement>(null);
   const [started, setStarted] = useState(false);
   const [still, setStill] = useState(false);
@@ -429,6 +431,7 @@ const dropAnimation: DropAnimation = {
 };
 
 function SkillsTile({ className }: { className: string }) {
+  const copy = useContent().process;
   const S = MOTION.skills;
   const [items, setItems] = useState<string[]>(() => [...copy.skills]);
   const [active, setActive] = useState<string | null>(null);
@@ -593,6 +596,7 @@ function ToolsTile({ className }: { className: string }) {
 
 /** «Process is the product»: принципы с точками за курсором, итоги-счётчики, навыки с перетаскиванием и лента инструментов. */
 export function ProcessSection() {
+  const copy = useContent().process;
   const root = useRef<HTMLElement>(null);
 
   // появление в стиле сайта (как у блока отзывов): буквы заголовка из масок, текст и плитки снизу

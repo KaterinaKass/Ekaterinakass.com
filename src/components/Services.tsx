@@ -1,11 +1,10 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { content } from "@/content";
+import { useContent } from "@/i18n/LocaleProvider";
 import { gsap, MOTION_OK, useGsap } from "@/lib/gsap";
 import { SplitChars } from "./SplitChars";
 
-const { services } = content;
 
 /** Рваный край, которым тёмная секция переходит в светлую. */
 function TornEdge() {
@@ -33,6 +32,7 @@ const ACTIVE = { scale: 1, color: "#242424" };
  * на превью за курсором едет круглая кнопка, ведущая к блоку с работами.
  */
 export function Services() {
+  const { services } = useContent();
   const root = useRef<HTMLDivElement>(null);
   const activate = useRef<(i: number) => void>(undefined);
   const [active, setActive] = useState(0);
