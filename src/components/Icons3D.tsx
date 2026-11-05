@@ -17,6 +17,11 @@ const PLATE_BG = "#242424"; // плашка в цвет фона секции
 const PLATE_BORDER = "#0388ee"; // обводка — синий, как у кнопки меню
 const PLATE_GLYPH = "#ffffff"; // значок
 
+// Стрелка-курсор с именем — синий акцент сайта, как обводка плашки «перо» и робот
+const CURSOR_HEX = "#0388ee";
+const CURSOR_COLOR = 0x0388ee;
+const CURSOR_NAME = "Ekaterina";
+
 /** Рисует лицевую сторону плашки: тёмный скруглённый квадрат, голубая обводка, белый значок пера (кривая с опорными точками). */
 function drawPenToolFace() {
   const N = 512;
@@ -287,6 +292,111 @@ export function Icons3D({ progress, customIconSrc, className = "" }: Props) {
       back.rotation.y = Math.PI;
       plate.add(front, back);
 
+      // 2b. Стрелка-курсор с именем (как курсор соавтора в Figma): глянцевая синяя стрелка
+      //     и плашка с подписью. Цвета и текст — константы CURSOR_* вверху файла.
+      const roundedPoly = (pts: [number, number][], r: number) => {
+        const sh = new THREE.Shape();
+        const n = pts.length;
+        pts.forEach((p, i) => {
+          const prev = pts[(i - 1 + n) % n];
+          const next = pts[(i + 1) % n];
+          const toward = (a: [number, number], b: [number, number]) => {
+            const dx = b[0] - a[0], dy = b[1] - a[1];
+            const l = Math.hypot(dx, dy);
+            const k = Math.min(r, l / 2) / l;
+            return [a[0] + dx * k, a[1] + dy * k] as const;
+          };
+          const [ax, ay] = toward(p, prev);
+          const [bx, by] = toward(p, next);
+          if (i === 0) sh.moveTo(ax, ay);
+          else sh.lineTo(ax, ay);
+          sh.quadraticCurveTo(p[0], p[1], bx, by);
+        });
+        sh.closePath();
+        return sh;
+      };
+      const cursorMat = glossy(CURSOR_COLOR, { roughness: 0.45, clearcoat: 0, specularIntensity: 0.35, envMapIntensity: 0.25, toneMapped: false });
+      // стрелка: остриё слева сверху, как у курсора Figma
+      const arrowGeo = new THREE.ExtrudeGeometry(
+        roundedPoly([[0, 0], [0.98, -0.34], [0.46, -0.47], [0.33, -0.98]], 0.07),
+        { depth: 0.08, bevelEnabled: true, bevelThickness: 0.07, bevelSize: 0.02, bevelSegments: 8, curveSegments: 12 },
+      );
+      arrowGeo.translate(0, 0, -0.04);
+      const arrow = new THREE.Mesh(arrowGeo, cursorMat);
+
+      // плашка с именем: ниже и правее острия
+      const PW = 2.0, PH = 0.82, PR = 0.2, PX = 0.62, PY = -0.78, PD = 0.12;
+      const pillShape = new THREE.Shape();
+      pillShape.moveTo(PR, 0);
+      pillShape.lineTo(PW - PR, 0);
+      pillShape.quadraticCurveTo(PW, 0, PW, -PR);
+      pillShape.lineTo(PW, -PH + PR);
+      pillShape.quadraticCurveTo(PW, -PH, PW - PR, -PH);
+      pillShape.lineTo(PR, -PH);
+      pillShape.quadraticCurveTo(0, -PH, 0, -PH + PR);
+      pillShape.lineTo(0, -PR);
+      pillShape.quadraticCurveTo(0, 0, PR, 0);
+      const pillSide = new THREE.ExtrudeGeometry(pillShape, { depth: PD, bevelEnabled: false, curveSegments: 16 });
+      pillSide.translate(0, 0, -PD / 2);
+      const pillFace = new THREE.ShapeGeometry(pillShape, 16);
+      {
+        const uv = pillFace.attributes.uv;
+        const pos = pillFace.attributes.position;
+        for (let i = 0; i < pos.count; i++) uv.setXY(i, pos.getX(i) / PW, 1 + pos.getY(i) / PH);
+        uv.needsUpdate = true;
+      }
+      await document.fonts?.ready;
+      if (disposed) return;
+      const pillCanvas = document.createElement("canvas");
+      pillCanvas.width = 1024;
+      pillCanvas.height = Math.round((1024 * PH) / PW);
+      {
+        const g = pillCanvas.getContext("2d")!;
+        g.fillStyle = CURSOR_HEX;
+        g.fillRect(0, 0, pillCanvas.width, pillCanvas.height);
+        g.fillStyle = "#ffffff";
+        g.textAlign = "center";
+        g.textBaseline = "middle";
+        const family = getComputedStyle(document.body).fontFamily || "system-ui, sans-serif";
+        g.font = `500 ${Math.round(pillCanvas.height * 0.5)}px ${family}`;
+        g.fillText(CURSOR_NAME, pillCanvas.width / 2, pillCanvas.height * 0.53, pillCanvas.width * 0.86);
+      }
+      const pillTex = new THREE.CanvasTexture(pillCanvas);
+      pillTex.colorSpace = THREE.SRGBColorSpace;
+      pillTex.anisotropy = 8;
+      // как у плашки «перо»: цвет через emissive, чтобы синий и белый текст не высветлялись
+      const pillFaceMat = new THREE.MeshPhysicalMaterial({
+        map: pillTex,
+        color: 0x1a1a1a,
+        emissive: 0xffffff,
+        emissiveMap: pillTex,
+        emissiveIntensity: 1,
+        roughness: 0.55,
+        metalness: 0,
+        specularIntensity: 0.4,
+        envMapIntensity: 0.2,
+        toneMapped: false,
+      });
+      const pill = new THREE.Group();
+      pill.add(new THREE.Mesh(pillSide, cursorMat));
+      const pillFront = new THREE.Mesh(pillFace, pillFaceMat);
+      pillFront.position.z = PD / 2 + 0.001;
+      const pillBack = new THREE.Mesh(pillFace, pillFaceMat);
+      pillBack.rotation.y = Math.PI;
+      pillBack.position.set(PW, 0, -PD / 2 - 0.001); // разворот вокруг правого края, чтобы текст сзади читался
+      pill.add(pillFront, pillBack);
+      pill.position.set(PX, PY, 0);
+
+      const cursorInner = new THREE.Group();
+      cursorInner.add(arrow, pill);
+      const cBox = new THREE.Box3().setFromObject(cursorInner);
+      const cSize = cBox.getSize(new THREE.Vector3());
+      const cCenter = cBox.getCenter(new THREE.Vector3());
+      cursorInner.position.set(-cCenter.x, -cCenter.y, 0);
+      const cursor = new THREE.Group(); // обёртка: её масштабирует цикл анимации
+      cursor.add(cursorInner);
+      const cursorBase = Math.max(cSize.x, cSize.y);
+
       // 3. Пиксельный робот (оригинальный персонаж): собран из кубиков по карте ниже.
       //    # — корпус (синий), o — глаза (белые). Каждая строка — ряд сверху вниз.
       const BOT_MAP = [
@@ -338,7 +448,9 @@ export function Icons3D({ progress, customIconSrc, className = "" }: Props) {
         // вторая иконка правее над текстом, плашка с пером под текстом на линии)
         { obj: figmaIcon, base: 2.55, size: (w: number, h: number) => (w < 768 ? 0.149 : 0.1555) * h, fx: -0.34, fy: 0.22, mfx: -0.28, mfy: 0.32, appear: 0.05, rot: [0.15, -0.45, -0.12], phase: 0 },
         { obj: slot, base: 1.6, size: (w: number, h: number) => (w < 768 ? 0.119 : 0.187) * h, fx: 0.36, fy: 0.22, mfx: 0.14, mfy: 0.27, appear: 0.18, rot: [-0.2, 0.5, 0.08], phase: 1.7 },
-        { obj: plate, base: 1.4, size: (w: number) => (w < 768 ? 0.209 * w : plateDesktopPx(w)), fx: 0.02, fy: -0.28, mfx: 0, mfy: -0.3, appear: 0.3, rot: [-0.35, 0.15, 0.35], phase: 3.1 },
+        // плашка «перо» сдвинута влево, справа от неё — стрелка с именем
+        { obj: plate, base: 1.4, size: (w: number) => (w < 768 ? 0.209 * w : plateDesktopPx(w)), fx: -0.1, fy: -0.28, mfx: -0.24, mfy: -0.3, appear: 0.3, rot: [-0.35, 0.15, 0.35], phase: 3.1 },
+        { obj: cursor, base: cursorBase, size: (w: number) => (w < 768 ? 0.34 * w : plateDesktopPx(w) * 1.7), fx: 0.13, fy: -0.27, mfx: 0.17, mfy: -0.27, appear: 0.38, rot: [0.1, -0.2, -0.12], phase: 4.4 },
       ];
       items.forEach((it) => scene.add(it.obj));
 
