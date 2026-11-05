@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import "lenis/dist/lenis.css";
 import "./globals.css";
 import { content } from "@/content";
+import { pageMeta, SITE_URL } from "@/lib/meta";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 
@@ -22,8 +23,8 @@ const body = Inter_Tight({
 });
 
 export const metadata: Metadata = {
-  title: content.meta.title,
-  description: content.meta.description,
+  metadataBase: new URL(SITE_URL),
+  ...pageMeta(content.meta.title, content.meta.description),
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

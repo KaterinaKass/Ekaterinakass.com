@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/meta";
 import type { ReactNode } from "react";
 import { SmoothScroll } from "@/components/SmoothScroll";
 import { Footer } from "@/components/Footer";
@@ -6,10 +7,7 @@ import { FrameLines, MenuPill } from "@/components/Chrome";
 import { RevealScope } from "@/components/case/RevealScope";
 import { A, BackLink, List, P, Section, Table, Words } from "@/components/case/CaseUI";
 
-export const metadata: Metadata = {
-  title: "Research scripts — Technical Tests at Cyberr",
-  description: "Scripts for discovery interviews and moderated usability tests on Cyberr Technical Tests.",
-};
+export const metadata: Metadata = pageMeta("Research scripts — Technical Tests at Cyberr", "Scripts for discovery interviews and moderated usability tests on Cyberr Technical Tests.");
 
 const CASE_HREF = "/work/cyberr-technical-tests?view=full";
 

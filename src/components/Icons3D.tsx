@@ -328,32 +328,38 @@ export function Icons3D({ progress, customIconSrc, className = "" }: Props) {
         });
       }
 
+      // Размеры как на референсе (nithinmwarrier.com), посчитаны из его кода: камера, высота холста, масштаб модели.
+      // size(w, h) — экранный размер иконки по большей стороне в px; base — эта сторона в единицах сцены.
+      //  Figma: 15.5% высоты экрана (мобильный 14.9%); Claude: 18.7% (мобильный 11.9%);
+      //  плашка: 109 px от 1536, 96 px на 1280–1535, 87 px на 1024–1279, 109 px на 768–1023, 20.9vw на мобильном.
+      const plateDesktopPx = (w: number) => (w >= 1536 ? 109 : w >= 1280 ? 96 : w >= 1024 ? 87 : 109);
       const items = [
         // fx/fy — десктоп; mfx/mfy — мобильный (расстановка как в референсе: Figma слева сверху,
         // вторая иконка правее над текстом, плашка с пером под текстом на линии)
-        // mscale — размер на мобильном (Figma чуть меньше, иконка Claude Code крупнее), плашка по центру
-        { obj: figmaIcon, fx: -0.34, fy: 0.22, mfx: -0.28, mfy: 0.32, scale: 1.05, mscale: 0.85, appear: 0.05, rot: [0.15, -0.45, -0.12], phase: 0 },
-        { obj: slot, fx: 0.36, fy: 0.22, mfx: 0.14, mfy: 0.27, scale: 1.1, mscale: 1.45, appear: 0.18, rot: [-0.2, 0.5, 0.08], phase: 1.7 },
-        { obj: plate, fx: 0.02, fy: -0.28, mfx: 0, mfy: -0.3, scale: 1.45, mscale: 1.45, appear: 0.3, rot: [-0.35, 0.15, 0.35], phase: 3.1 },
+        { obj: figmaIcon, base: 2.55, size: (w: number, h: number) => (w < 768 ? 0.149 : 0.1555) * h, fx: -0.34, fy: 0.22, mfx: -0.28, mfy: 0.32, appear: 0.05, rot: [0.15, -0.45, -0.12], phase: 0 },
+        { obj: slot, base: 1.6, size: (w: number, h: number) => (w < 768 ? 0.119 : 0.187) * h, fx: 0.36, fy: 0.22, mfx: 0.14, mfy: 0.27, appear: 0.18, rot: [-0.2, 0.5, 0.08], phase: 1.7 },
+        { obj: plate, base: 1.4, size: (w: number) => (w < 768 ? 0.209 * w : plateDesktopPx(w)), fx: 0.02, fy: -0.28, mfx: 0, mfy: -0.3, appear: 0.3, rot: [-0.35, 0.15, 0.35], phase: 3.1 },
       ];
       items.forEach((it) => scene.add(it.obj));
 
       // размеры видимой области на глубине z=0
       let viewW = 1;
       let viewH = 1;
-      let unit = 1;
       let narrow = false;
+      // базовый масштаб каждой иконки, чтобы на экране она была size(w, h) пикселей
+      let baseScale = items.map(() => 1);
       const resize = () => {
         const w = canvas.clientWidth;
         const h = canvas.clientHeight;
+        if (!w || !h) return;
         renderer.setSize(w, h, false);
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
         viewH = 2 * camera.position.z * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
         viewW = viewH * camera.aspect;
         narrow = w < 700;
-        // на мобильном крупнее, как в референсе
-        unit = narrow ? 0.44 : Math.min(1, w / 1100);
+        const pxPerUnit = h / viewH;
+        baseScale = items.map((it) => it.size(window.innerWidth, h) / pxPerUnit / it.base);
       };
       resize();
       const ro = new ResizeObserver(resize);
@@ -383,9 +389,9 @@ export function Icons3D({ progress, customIconSrc, className = "" }: Props) {
         mouse.x += (mouse.tx - mouse.x) * 0.05;
         mouse.y += (mouse.ty - mouse.y) * 0.05;
 
-        items.forEach((it) => {
+        items.forEach((it, i) => {
           const a = smooth(it.appear, it.appear + 0.18, p);
-          const s = (narrow ? it.mscale : it.scale) * unit * a;
+          const s = baseScale[i] * a;
           it.obj.scale.setScalar(Math.max(s, 0.0001));
           it.obj.visible = a > 0.001;
           it.obj.position.set(

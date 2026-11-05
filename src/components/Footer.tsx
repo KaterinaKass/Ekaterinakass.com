@@ -119,9 +119,9 @@ export function Footer() {
       <div className="footer-rule mx-[5%] h-px origin-left bg-cream/30" />
 
       {/* на десктопе контент отодвинут от вертикальных линий, как в референсе */}
-      <div className="mx-[5%] flex flex-col items-center gap-4 py-8 md:flex-row md:items-end md:justify-between md:gap-8 md:px-[clamp(24px,3.5vw,56px)]">
+      <div className="mx-[5%] flex flex-col items-center gap-10 py-10 md:flex-row md:items-start md:justify-between md:gap-8 md:py-8 md:px-[clamp(24px,3.5vw,56px)]">
         <div className="text-center md:text-left">
-          <p className="mb-2 flex justify-center gap-[0.3em] overflow-hidden text-[16px] md:justify-start md:text-[clamp(16px,2vw,48px)]">
+          <p className="mb-2 flex justify-center gap-[0.3em] overflow-hidden text-[16px] md:justify-start md:-mt-[0.15em] md:text-[clamp(16px,2vw,48px)] md:leading-[1.3]">
             {footer.lead.split(" ").map((w, i) => (
               <span key={i} className="footer-lead-word inline-block">{w}</span>
             ))}
@@ -136,8 +136,8 @@ export function Footer() {
           </h3>
         </div>
 
-        <div className="flex flex-col items-center gap-5 md:items-end">
-          <div className="flex flex-col items-center gap-2.5 md:items-end">
+        <div className="flex flex-col items-center gap-8 md:items-end md:gap-5">
+          <div className="flex flex-col items-center gap-4 md:items-end md:gap-2.5">
             {/* две кнопки с обводкой: форма и WhatsApp; на телефоне одна под другой */}
             <div className="flex w-full flex-col items-stretch gap-3 sm:flex-row sm:items-center">
               <button type="button" onClick={() => setFormOpen(true)} aria-haspopup="dialog" className={OUTLINE_BTN}>

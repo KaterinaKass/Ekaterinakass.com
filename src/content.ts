@@ -9,7 +9,7 @@ export const content = {
 
   meta: {
     title: "Ekaterina Kasakina — Portfolio",
-    description: "Placeholder portfolio description.",
+    description: "Product Designer based in Luxembourg. 10+ years of shaping clear products and calm interfaces people trust.",
   },
 
   hero: {
