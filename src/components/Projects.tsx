@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useRef } from "react";
+import { useRef, type CSSProperties } from "react";
 import { content } from "@/content";
 import { gsap, MOTION_OK, useGsap } from "@/lib/gsap";
 import { SplitChars } from "./SplitChars";
@@ -99,7 +99,7 @@ export function Projects() {
           <a
             key={p.name}
             href={p.href}
-            className="project-card group relative flex h-[300px] flex-col items-center justify-between overflow-hidden border-b border-line px-6 py-8 md:h-[348px] md:odd:border-r"
+            className="project-card group relative flex h-[260px] flex-col items-center justify-between overflow-hidden border-b border-line px-6 py-6 md:h-[348px] md:py-8 md:odd:border-r"
           >
             <span className="absolute inset-0 origin-bottom scale-y-0 bg-[#efe7e1] transition-transform duration-500 ease-[cubic-bezier(.2,.8,.2,1)] group-hover:scale-y-100" />
             {/* превью проекта при наведении: проявляется на фоне, книзу уходит в цвет фона, чтобы читались лого и категория */}
@@ -115,26 +115,50 @@ export function Projects() {
                 <span className="absolute inset-0 bg-[linear-gradient(transparent_40%,var(--cream)_100%)]" />
               </span>
             )}
-            <SplitChars text={p.year} charClass="card-char" className="relative text-[14px] text-muted md:text-[18px]" />
-            {/* с превью лого при наведении опускается и уменьшается, как в референсе; без превью — просто чуть растёт.
-                Ховер на внутренней обёртке: на .card-logo GSAP пишет инлайн translate/scale для появления */}
-            <div className="card-logo relative">
-              <div
-                className={`transition-transform duration-500 ease-[cubic-bezier(.2,.8,.2,1)] ${
-                  p.preview ? "md:group-hover:translate-y-[65px] md:group-hover:scale-[0.8]" : "group-hover:scale-105"
-                }`}
-              >
-                {p.logo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={p.logo.src} alt={p.name} width={p.logo.w} height={p.logo.h} className="block h-10 w-auto select-none md:h-12" draggable={false} />
-                ) : (
-                  <LogoPlaceholder name={p.name} index={i} />
-                )}
+            <SplitChars text={p.year} charClass="card-char" className="relative text-[12px] text-muted md:text-[18px]" />
+            {/* мобильный (как в референсе): год сверху, по центру лого + роль с отступом 24px, внизу кнопка с обводкой.
+                Десктоп: обёртка «растворяется» (md:contents) — год, лого, роль распределяются по высоте карточки */}
+            <div className="relative flex w-full flex-col items-center gap-6 md:contents">
+              {/* с превью лого при наведении опускается и уменьшается, как в референсе; без превью — просто чуть растёт.
+                  Ховер на внутренней обёртке: на .card-logo GSAP пишет инлайн translate/scale для появления */}
+              <div className="card-logo relative flex w-full justify-center">
+                <div
+                  className={`flex w-full justify-center transition-transform duration-500 ease-[cubic-bezier(.2,.8,.2,1)] ${
+                    p.preview ? "md:group-hover:translate-y-[65px] md:group-hover:scale-[0.8]" : "group-hover:scale-105"
+                  }`}
+                >
+                  {p.logo ? (
+                    // ширина логотипа — доля ширины карточки, как в референсе (на мобильном доля больше)
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={p.logo.src}
+                      alt={p.name}
+                      width={p.logo.w}
+                      height={p.logo.h}
+                      style={{ "--logo-w": `${p.logo.maxW ?? 40}%`, "--logo-w-m": `${p.logo.maxWMobile ?? 70}%` } as CSSProperties}
+                      className="block h-auto w-(--logo-w-m) select-none md:w-(--logo-w)"
+                      draggable={false}
+                    />
+                  ) : (
+                    <LogoPlaceholder name={p.name} index={i} />
+                  )}
+                </div>
               </div>
+              {/* роль: крупнее и с разрядкой, чтобы читалась (у .font-display своя плотная разрядка, поэтому через style) */}
+              <SplitChars
+                text={p.category.toUpperCase()}
+                charClass="card-char"
+                className="font-display relative text-[14px] leading-none text-ink md:text-[20px]"
+                style={{ letterSpacing: "0.06em" }}
+              />
             </div>
-            <SplitChars text={p.category.toUpperCase()} charClass="card-char" className="font-display relative text-[13px] text-ink md:text-[18px]" />
-            <span className="relative flex items-center gap-2 text-[12px] md:hidden">
-              View project <span aria-hidden>→</span>
+            {/* мобильная кнопка как в референсе: обводка-пилюля, стрелка по диагонали */}
+            <span className="relative flex items-center gap-2 rounded-full border border-ink px-3 py-[7px] text-[14px] leading-none text-ink md:hidden">
+              {projects.viewLabel}
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M7 17L17 7" />
+                <path d="M7 7h10v10" />
+              </svg>
             </span>
           </a>
         ))}

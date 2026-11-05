@@ -1,13 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { content } from "@/content";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
+import { ContactForm } from "./ContactForm";
 
-/** Две вертикальные линии-рамки поверх всей страницы. */
+/** Две вертикальные линии-рамки поверх всей страницы — на мобильном и на десктопе, как в референсе.
+ *  При загрузке вырастают сверху вниз (анимация .frame-line в globals.css). Стоят на 5%, как края сетки проектов и футера. */
 export function FrameLines() {
   return (
-    <div className="pointer-events-none fixed inset-y-0 left-[5%] right-[5%] z-40 hidden border-x border-[#b8aea6]/40 md:block" />
+    <div aria-hidden className="pointer-events-none fixed inset-y-0 left-[5%] right-[5%] z-40">
+      <span className="frame-line absolute inset-y-0 left-0 w-px bg-[#ACACAC]" />
+      <span className="frame-line absolute inset-y-0 right-0 w-px bg-[#ACACAC]" />
+    </div>
   );
 }
 
@@ -27,6 +32,9 @@ async function copyText(text: string) {
   }
 }
 
+/** Якоря (#…) получают префикс страницы, ссылки на другие страницы (/about) идут как есть. */
+const menuHref = (base: string, href: string) => (href.startsWith("/") ? href : base + href);
+
 const DESKTOP_MQ = "(min-width: 1024px)";
 const EASE = "expo.out"; // близко к cubic-bezier(.22, 1, .36, 1)
 
@@ -40,6 +48,15 @@ const EASE = "expo.out"; // близко к cubic-bezier(.22, 1, .36, 1)
 export function MenuPill({ linkBase = "" }: { linkBase?: string }) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
+  const closeForm = useCallback(() => setFormOpen(false), []);
+  // пункт «Contact»: меню закрывается, форма открывается кадром позже — иначе закрытие меню
+  // (его эффект идёт после эффекта формы) снимет блокировку прокрутки, которую поставила форма
+  const openForm = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setOpen(false);
+    requestAnimationFrame(() => setFormOpen(true));
+  };
   const pill = useRef<HTMLDivElement>(null);
   const card = useRef<HTMLDivElement>(null);
   const circle = useRef<HTMLSpanElement>(null);
@@ -183,8 +200,9 @@ export function MenuPill({ linkBase = "" }: { linkBase?: string }) {
             {content.menu.links.map((l) => (
               <a
                 key={l.label}
-                href={linkBase + l.href}
-                onClick={() => setOpen(false)}
+                href={menuHref(linkBase, l.href)}
+                onClick={l.form ? openForm : () => setOpen(false)}
+                aria-haspopup={l.form ? "dialog" : undefined}
                 className="group overflow-hidden rounded-xl px-4 py-2 transition-colors hover:bg-accent"
               >
                 <span className="menu-link font-display block text-[28px] leading-[1.15] text-ink uppercase transition-colors group-hover:text-cream">
@@ -213,7 +231,7 @@ export function MenuPill({ linkBase = "" }: { linkBase?: string }) {
           {/* пункты мобильного меню */}
           <div ref={list} className="relative z-10 hidden flex-1 flex-col items-center justify-center gap-6 pt-8 pb-2 lg:hidden!">
             {content.menu.links.map((l) => (
-              <a key={l.label} href={linkBase + l.href} onClick={() => setOpen(false)} className="sheet-item font-display block text-[32px] leading-none text-cream uppercase">
+              <a key={l.label} href={menuHref(linkBase, l.href)} onClick={l.form ? openForm : () => setOpen(false)} aria-haspopup={l.form ? "dialog" : undefined} className="sheet-item font-display block text-[32px] leading-none text-cream uppercase">
                 {l.label}
               </a>
             ))}
@@ -239,6 +257,8 @@ export function MenuPill({ linkBase = "" }: { linkBase?: string }) {
           </button>
         </div>
       </div>
+
+      <ContactForm open={formOpen} onClose={closeForm} />
     </>
   );
 }

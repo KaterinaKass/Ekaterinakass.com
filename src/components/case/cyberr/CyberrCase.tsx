@@ -116,7 +116,7 @@ export function CyberrCase({ initialView, data, summary, full }: { initialView: 
         <div className="js-intro relative">
           {/* та же линия и высота, что у подписи и кнопки Menu на главной */}
           <div className="absolute top-6 left-[calc(5%+16px)] lg:top-8 lg:left-[calc(5%+24px)]">
-            <BackLink href="/#work">Back to work</BackLink>
+            <BackLink href="/#shipped">Back to work</BackLink>
           </div>
 
           {/* как в референсе: слева заголовок, справа карточки 2×2 */}

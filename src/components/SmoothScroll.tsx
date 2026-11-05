@@ -20,7 +20,7 @@ export function SmoothScroll() {
     // якорные ссылки из меню
     const onClick = (e: MouseEvent) => {
       const a = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[href^="#"]');
-      if (!a) return;
+      if (!a || e.defaultPrevented) return; // ссылка уже обработана сама (например, «Contact» открывает форму)
       const id = a.getAttribute("href")!;
       const target = id === "#top" ? 0 : document.querySelector<HTMLElement>(id);
       if (target === null) return;

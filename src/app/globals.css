@@ -170,3 +170,35 @@ html.font-neue .font-wide {
     animation: none;
   }
 }
+
+/* Вертикальные линии-рамки (FrameLines): при загрузке вырастают сверху вниз, как в референсе — 2 с, cubic-bezier(.22,1,.36,1) */
+.frame-line {
+  transform-origin: top;
+  animation: frame-line-grow 2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes frame-line-grow {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .frame-line { animation: none; }
+}
+
+/* Бегущая лента логотипов в блоке Process: список повторён 4 раза, сдвиг на половину — бесшовный круг.
+   Длительность задаёт компонент (--marquee-duration), числа из reference/sarottofabio-process/MECHANIC.md */
+@keyframes tools-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.tools-marquee {
+  animation: tools-marquee var(--marquee-duration, 24s) linear infinite;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tools-marquee { animation: none; }
+}
+
+/* Лента фактов на странице About: останавливается под курсором (как у оригинала, reference/sarottofabio-about) */
+.marquee-hover-pause:hover {
+  animation-play-state: paused;
+}

@@ -1,49 +1,67 @@
 "use client";
 
-import { useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { content } from "@/content";
 import { gsap, MOTION_OK, useGsap } from "@/lib/gsap";
 import { SplitChars } from "./SplitChars";
 import { PixelAssemble } from "./PixelAssemble";
+import { ContactForm } from "./ContactForm";
 import { attachNameHover, HOVER_MQ } from "@/lib/nameHover";
 
 const { footer, hero } = content;
 
-/** Иконки соцсетей: 48px, тонкая круглая обводка и знак внутри (как по стилю в референсе). */
+/** Иконки соцсетей как в референсе: 48px, контурные знаки (сетка 24, линия 2) без круга вокруг. */
 function Icon({ name }: { name: "instagram" | "linkedin" | "mail" }) {
   return (
     <svg
       width="48"
       height="48"
-      viewBox="0 0 48 48"
+      viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.5"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       aria-hidden
       // эффект наведения — на самом значке, а не на ссылке: у ссылки прозрачность анимирует GSAP
       className="transition-opacity group-hover:opacity-70"
     >
-      <circle cx="24" cy="24" r="22.25" />
       {name === "instagram" && (
         <>
-          <rect x="15" y="15" width="18" height="18" rx="5.5" />
-          <circle cx="24" cy="24" r="4.3" />
-          <circle cx="29.2" cy="18.8" r="0.9" fill="currentColor" stroke="none" />
+          <path d="M4 8a4 4 0 0 1 4 -4h8a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4z" />
+          <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+          <path d="M16.5 7.5v.01" />
         </>
       )}
       {name === "linkedin" && (
         <>
-          <path d="M17.5 21.5V31" />
-          <circle cx="17.5" cy="17.3" r="1.2" fill="currentColor" stroke="none" />
-          <path d="M22.5 31v-9.5M22.5 25.5c0-2.4 1.6-4.2 3.8-4.2s3.6 1.6 3.6 4.2V31" />
+          <path d="M8 11v5" />
+          <path d="M8 8v.01" />
+          <path d="M12 16v-5" />
+          <path d="M16 16v-3a2 2 0 1 0 -4 0" />
+          <path d="M3 7a4 4 0 0 1 4 -4h10a4 4 0 0 1 4 4v10a4 4 0 0 1 -4 4h-10a4 4 0 0 1 -4 -4z" />
         </>
       )}
       {name === "mail" && (
         <>
-          <circle cx="24" cy="24" r="4.2" />
-          <path d="M28.2 20v5.2a2.6 2.6 0 0 0 5.2 0V24a9.4 9.4 0 1 0-3.7 7.5" />
+          <circle cx="12" cy="12" r="4" />
+          <path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8" />
         </>
       )}
+    </svg>
+  );
+}
+
+// кнопка с обводкой на синем: размеры как у CTA сайта, при наведении заливается светлым
+const OUTLINE_BTN =
+  "inline-flex items-center justify-center gap-2.5 rounded-full border border-cream/70 px-6 py-[14px] text-[16px] leading-none font-medium text-cream transition-colors duration-200 hover:border-cream hover:bg-cream hover:text-accent md:text-[clamp(16px,1.1vw,20px)]";
+
+/** Значок WhatsApp контуром — тем же стилем, что иконки соцсетей (линия 2, скруглённые концы). */
+function WhatsAppIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9l-5.05 .9" />
+      <path d="M9 10a.5 .5 0 0 0 1 0v-1a.5 .5 0 0 0 -1 0v1a5 5 0 0 0 5 5h1a.5 .5 0 0 0 0 -1h-1a.5 .5 0 0 0 0 1" />
     </svg>
   );
 }
@@ -51,6 +69,8 @@ function Icon({ name }: { name: "instagram" | "linkedin" | "mail" }) {
 /** Финальный синий экран: большое имя, аватар, призыв и контакты. */
 export function Footer() {
   const root = useRef<HTMLElement>(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const closeForm = useCallback(() => setFormOpen(false), []);
 
   useGsap(root, ({ q }) => {
     const mm = gsap.matchMedia();
@@ -99,14 +119,15 @@ export function Footer() {
       <div className="footer-rule mx-[5%] h-px origin-left bg-cream/30" />
 
       {/* на десктопе контент отодвинут от вертикальных линий, как в референсе */}
-      <div className="mx-[5%] flex flex-col items-center gap-6 py-8 md:flex-row md:items-end md:justify-between md:gap-8 md:px-[clamp(24px,3.5vw,56px)]">
+      <div className="mx-[5%] flex flex-col items-center gap-4 py-8 md:flex-row md:items-end md:justify-between md:gap-8 md:px-[clamp(24px,3.5vw,56px)]">
         <div className="text-center md:text-left">
           <p className="mb-2 flex justify-center gap-[0.3em] overflow-hidden text-[16px] md:justify-start md:text-[clamp(16px,2vw,48px)]">
             {footer.lead.split(" ").map((w, i) => (
               <span key={i} className="footer-lead-word inline-block">{w}</span>
             ))}
           </p>
-          <h3 className="font-wide text-[32px] leading-none text-cream md:text-[clamp(32px,3.8vw,88px)]">
+          {/* шрифт шире, чем Trobika в референсе, поэтому кегль чуть меньше: строки получаются той же ширины (28px на мобильном) */}
+          <h3 className="font-wide text-[28px] leading-none text-cream md:text-[clamp(30px,3.4vw,80px)]">
             {footer.big.map((line) => (
               <span key={line} className="block">
                 <SplitChars text={line} charClass="footer-big-char" />
@@ -115,8 +136,26 @@ export function Footer() {
           </h3>
         </div>
 
-        <div className="flex flex-col items-center gap-3 md:items-end">
-          <span className="text-[18px]">{footer.reachOut}</span>
+        <div className="flex flex-col items-center gap-5 md:items-end">
+          <div className="flex flex-col items-center gap-2.5 md:items-end">
+            {/* две кнопки с обводкой: форма и WhatsApp; на телефоне одна под другой */}
+            <div className="flex w-full flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+              <button type="button" onClick={() => setFormOpen(true)} aria-haspopup="dialog" className={OUTLINE_BTN}>
+                {footer.reachOut}
+              </button>
+              <a href={footer.whatsapp.href} target="_blank" rel="noopener noreferrer" className={OUTLINE_BTN}>
+                <WhatsAppIcon />
+                {footer.whatsapp.label}
+              </a>
+            </div>
+            {/* мелкий текст — как подпись «Designed in Figma» ниже; почта — ссылка mailto тем же стилем, что и текст */}
+            <p className="text-[12px] text-cream/80 md:text-[18px]">
+              {footer.orEmail}
+              <a href={`mailto:${footer.email}`} className="transition-opacity hover:opacity-70">
+                {footer.email}
+              </a>
+            </p>
+          </div>
           <div className="flex gap-5">
             {footer.socials.map((s) => (
               <a
@@ -143,6 +182,8 @@ export function Footer() {
           <b className="font-semibold text-cream">{footer.creditRight[1]}</b>
         </span>
       </div>
+
+      <ContactForm open={formOpen} onClose={closeForm} />
     </footer>
   );
 }

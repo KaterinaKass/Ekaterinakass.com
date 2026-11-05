@@ -1,28 +1,46 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { content } from "@/content";
 import { gsap, MOTION_OK, useGsap } from "@/lib/gsap";
 import { SplitChars } from "./SplitChars";
 import { CursorBubble } from "./CursorBubble";
 import { attachNameHover, HOVER_MQ } from "@/lib/nameHover";
+import { SIGN_PATHS, SIGN_STROKE, SIGN_VIEWBOX } from "@/lib/signaturePaths";
 
 const { hero } = content;
 
-/** Подпись: на старте крупно пишется по центру (clip-path), потом уезжает в левый верхний угол. */
+/** Подпись: на старте крупно «пишется» по центру линией, как рукой (как в референсе — stroke-dashoffset),
+ *  потом уезжает в левый верхний угол. Картинка подписи проявляется через маску из штрихов SIGN_PATHS:
+ *  каждый штрих по очереди дорисовывается, и под ним открывается подпись. Без анимации маска нарисована целиком. */
 function Signature() {
+  const maskId = `sign-mask-${useId().replace(/:/g, "")}`;
+  const { w, h } = SIGN_VIEWBOX;
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={hero.signature}
-      alt=""
-      // размеры заданы заранее: ширина известна до загрузки картинки (интро её меряет)
-      width={1609}
-      height={226}
+    <svg
+      viewBox={`0 0 ${w} ${h}`}
       // мобильный: ширина как в референсе (64% экрана, максимум 240px); с lg — высота 44px
-      className="hero-sign h-auto w-[min(64vw,240px)] select-none lg:h-11 lg:w-auto"
-      draggable={false}
-    />
+      className="hero-sign block h-auto w-[min(64vw,240px)] select-none lg:h-11 lg:w-[313px]"
+      aria-hidden
+    >
+      <defs>
+        <mask id={maskId} maskUnits="userSpaceOnUse" x="0" y="0" width={w} height={h}>
+          {SIGN_PATHS.map((d, i) => (
+            <path
+              key={i}
+              className="sign-stroke"
+              d={d}
+              fill="none"
+              stroke="#fff"
+              strokeWidth={SIGN_STROKE}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          ))}
+        </mask>
+      </defs>
+      <image href={hero.signature} width={w} height={h} mask={`url(#${maskId})`} />
+    </svg>
   );
 }
 
@@ -49,6 +67,52 @@ function SideLabel({ lines, side }: { lines: string[]; side: "left" | "right" })
   );
 }
 
+/** cubic-bezier как в CSS: x(t) решается Ньютоном, возвращается y. Нужна точная кривая референса (.16,1,.3,1). */
+function cubicBezier(x1: number, y1: number, x2: number, y2: number) {
+  const bx = (t: number) => 3 * x1 * t * (1 - t) ** 2 + 3 * x2 * t * t * (1 - t) + t ** 3;
+  const by = (t: number) => 3 * y1 * t * (1 - t) ** 2 + 3 * y2 * t * t * (1 - t) + t ** 3;
+  const dx = (t: number) => 3 * x1 * (1 - t) ** 2 + 6 * (x2 - x1) * t * (1 - t) + 3 * (1 - x2) * t * t;
+  return (x: number) => {
+    let t = x;
+    for (let i = 0; i < 8; i++) {
+      const d = dx(t);
+      if (Math.abs(d) < 1e-6) break;
+      t = Math.min(1, Math.max(0, t - (bx(t) - x) / d));
+    }
+    return by(t);
+  };
+}
+const REF_EASE = cubicBezier(0.16, 1, 0.3, 1);
+
+/** Подпись «пишется» одной непрерывной линией, как в референсе: общий прогресс 0→1 за `duration`
+ *  с ease cubic-bezier(.16,1,.3,1), как в референсе — почти вся подпись появляется за первые ~1.5 с,
+ *  хвост дописывается медленно. Прогресс раскладывается по штрихам маски в порядке письма. */
+function writeSignature(sign: Element, duration: number) {
+  const strokes = Array.from(sign.querySelectorAll<SVGPathElement>(".sign-stroke"));
+  const lengths = strokes.map((p) => p.getTotalLength());
+  const sum = lengths.reduce((a, b) => a + b, 0);
+  strokes.forEach((p, i) => {
+    const len = lengths[i] + 1;
+    // штрих скрыт до своей очереди: иначе скруглённый конец линии нулевой длины виден точкой
+    gsap.set(p, { strokeDasharray: len, strokeDashoffset: len, visibility: "hidden" });
+  });
+  const pen = { drawn: 0 };
+  return gsap.to(pen, {
+    drawn: sum,
+    duration,
+    ease: REF_EASE,
+    onUpdate: () => {
+      let start = 0;
+      strokes.forEach((p, i) => {
+        const part = Math.min(Math.max(pen.drawn - start, 0), lengths[i]);
+        p.style.visibility = part > 0 ? "visible" : "hidden";
+        p.style.strokeDashoffset = String(lengths[i] + 1 - part);
+        start += lengths[i];
+      });
+    },
+  });
+}
+
 export function Hero() {
   const root = useRef<HTMLElement>(null);
   const [introDone, setIntroDone] = useState(false);
@@ -60,10 +124,15 @@ export function Hero() {
     mm.add(MOTION_OK, () => {
       // Порядок: подпись крупно по центру → уменьшается и уезжает в левый верхний угол,
       // одновременно кнопка меню появляется и едет на своё место → имя → фамилия с ролью и локацией
-      const SIGN = 0.15; // подпись пишется по центру
-      const MOVE = 1.65; // подпись и меню едут на места
-      const FIRST = 2.35;
-      const SECOND = 2.8;
+      // тайминги подписи (от старта страницы): пишется с 0.8 с, кривая как в референсе cubic-bezier(.16,1,.3,1),
+      // в 2.6 с начинает уезжать на место. У таймлайна задержка 0.2 с, поэтому здесь на 0.2 меньше.
+      // Наша подпись длиннее, чем «Nithin» в референсе, поэтому время короче (4.5 с вместо 9): ~85% появляется
+      // за первую секунду, почти вся — к 1.5 с, и «перо» не выглядит медленнее, чем в референсе.
+      const SIGN = 0.6; // подпись пишется по центру
+      const WRITE = 4.5;
+      const MOVE = 2.4; // подпись и меню едут на места (хвост подписи дописывается уже в движении)
+      const FIRST = MOVE + 0.7;
+      const SECOND = MOVE + 1.15;
 
       const sign = root.querySelector<HTMLElement>(".hero-sign")!;
       const sr = sign.getBoundingClientRect();
@@ -84,7 +153,7 @@ export function Hero() {
 
       const tl = gsap.timeline({ defaults: { ease: "power4.out" }, delay: 0.2 });
       tl.from(".hero-grid", { opacity: 0, duration: 1.2, ease: "power1.out" }, 0)
-        .fromTo(sign, { clipPath: "inset(0% 100% 0% 0%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: 1.3, ease: "power2.inOut" }, SIGN)
+        .add(writeSignature(sign, WRITE), SIGN)
         .to(sign, { x: 0, y: 0, scale: 1, duration: 1, ease: "power3.inOut" }, MOVE);
 
       if (pill && pr) {
@@ -151,7 +220,8 @@ export function Hero() {
             className="hero-meta text-[18px] leading-[1.15] text-ink lg:hidden"
           />
 
-          <h1 className="hero-title font-display text-center text-[16vw] lg:text-[clamp(36px,8.6vw,145px)] cursor-default leading-[0.95] text-ink uppercase">
+          {/* мобильный: 14.3vw — от вертикальных линий до самой широкой строки ~24px, как в референсе */}
+          <h1 className="hero-title font-display text-center text-[14.3vw] lg:text-[clamp(36px,8.6vw,145px)] cursor-default leading-[0.95] text-ink uppercase">
             <span className="flex justify-center">
               <SplitChars text={hero.firstLine} charClass="hero-char hero-char-1" />
             </span>

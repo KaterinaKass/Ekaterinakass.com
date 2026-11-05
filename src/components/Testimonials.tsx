@@ -158,7 +158,7 @@ export function Testimonials() {
               мобильный — жирное слово отдельной строкой, остальное 9.8vw; десктоп — всё clamp(32px,5vw,64px).
               В 10+ years жирное 17.8vw, но длинное «Recommended» в таком размере шире экрана, поэтому 10.8vw */}
           <h2 className="text-[9.8vw] leading-[1.08] font-normal text-cream md:text-[clamp(32px,5vw,64px)] md:leading-[1.14]">
-            <span className="mb-3 block text-[10.8vw] leading-none font-semibold md:mb-0 md:text-[length:inherit] md:leading-[inherit]">
+            <span className="block text-[10.8vw] leading-none font-semibold md:text-[length:inherit] md:leading-[inherit]">
               <SplitChars text={copy.title[0]} charClass="reviews-char" />
             </span>
             <span className="block">
