@@ -7,6 +7,7 @@ import { scrollToY } from "@/lib/scroll";
 import { BackLink, Figure, Label, Words, type Img } from "../CaseUI";
 import { FigureVideo, type Vid } from "../FigureVideo";
 import { useCaseReveal } from "../useCaseReveal";
+import { useContent, useLocale } from "@/i18n/LocaleProvider";
 
 export type CaseView = "summary" | "full";
 
@@ -20,15 +21,13 @@ export type CaseData = {
   scriptsHref?: string;
 };
 
-const VIEWS: { id: CaseView; label: string }[] = [
-  { id: "summary", label: "Summary" },
-  { id: "full", label: "Full Case Study" },
-];
+const VIEWS: CaseView[] = ["summary", "full"];
 
 /** Переключатель видов: чёрная плашка переезжает под выбранный пункт. */
 function ViewToggle({ view, onChange }: { view: CaseView; onChange: (v: CaseView) => void }) {
+  const ui = useContent().caseStudy;
   return (
-    <div role="tablist" aria-label="Case study view" className="relative grid h-12 grid-cols-2 rounded-full border border-ink/80 bg-cream/85 p-1 shadow-[0_6px_24px_rgba(0,0,0,.06)] backdrop-blur-md md:h-11">
+    <div role="tablist" aria-label={ui.viewsLabel} className="relative grid h-12 grid-cols-2 rounded-full border border-ink/80 bg-cream/85 p-1 shadow-[0_6px_24px_rgba(0,0,0,.06)] backdrop-blur-md md:h-11">
       <span
         aria-hidden
         className={`absolute inset-y-1 left-1 w-[calc(50%-4px)] rounded-full bg-ink transition-transform duration-500 ease-[cubic-bezier(.22,1,.36,1)] ${
@@ -37,24 +36,34 @@ function ViewToggle({ view, onChange }: { view: CaseView; onChange: (v: CaseView
       />
       {VIEWS.map((v) => (
         <button
-          key={v.id}
+          key={v}
           role="tab"
-          aria-selected={view === v.id}
-          onClick={() => onChange(v.id)}
+          aria-selected={view === v}
+          onClick={() => onChange(v)}
           className={`relative z-10 rounded-full px-5 text-[14px] whitespace-nowrap transition-colors duration-500 md:px-6 md:text-[15px] ${
-            view === v.id ? "text-cream" : "text-ink hover:text-ink/60"
+            view === v ? "text-cream" : "text-ink hover:text-ink/60"
           }`}
         >
-          {v.label}
+          {ui.views[v]}
         </button>
       ))}
     </div>
   );
 }
 
+type CaseVersion = { data: CaseData; summary: ReactNode; full: ReactNode };
+
+/** Кейс на двух языках: показывает версию под язык из LocaleProvider, вид (Summary / Full) при смене языка сохраняется. */
+export function LocalizedCase({ initialView, en, fr }: { initialView: CaseView; en: CaseVersion; fr: CaseVersion }) {
+  const v = useLocale() === "fr" ? fr : en;
+  return <CyberrCase initialView={initialView} data={v.data} summary={v.summary} full={v.full} />;
+}
+
 /** Страница кейса Cyberr: общий заголовок, переключатель Summary / Full Case Study, боковое меню разделов. */
 export function CyberrCase({ initialView, data, summary, full }: { initialView: CaseView; data: CaseData; summary: ReactNode; full: ReactNode }) {
   const { header, hero, nav, scriptsHref } = data;
+  const locale = useLocale();
+  const ui = useContent().caseStudy;
   const [view, setView] = useState<CaseView>(initialView);
   const [active, setActive] = useState("overview");
   const headerRef = useRef<HTMLElement>(null);
@@ -71,8 +80,9 @@ export function CyberrCase({ initialView, data, summary, full }: { initialView: 
     if (window.scrollY > top) scrollToY(top, true);
   }, [view]);
 
-  useCaseReveal(headerRef);
-  useCaseReveal(contentRef, view);
+  // при смене языка текст другой — появление запускается заново
+  useCaseReveal(headerRef, locale);
+  useCaseReveal(contentRef, `${view}-${locale}`);
 
   // заголовок скрыт до загрузки JS (js-intro), чтобы не мигал перед анимацией
   useLayoutEffect(() => {
@@ -90,7 +100,7 @@ export function CyberrCase({ initialView, data, summary, full }: { initialView: 
       }),
     );
     return () => triggers.forEach((t) => t.kill());
-  }, [view]);
+  }, [view, locale]);
 
   const changeView = (v: CaseView) => {
     if (v === view) return;
@@ -116,7 +126,7 @@ export function CyberrCase({ initialView, data, summary, full }: { initialView: 
         <div className="js-intro relative">
           {/* та же линия и высота, что у подписи и кнопки Menu на главной */}
           <div className="absolute top-6 left-[calc(5%+16px)] lg:top-8 lg:left-[calc(5%+24px)]">
-            <BackLink href="/#shipped">Back to work</BackLink>
+            <BackLink href="/#shipped">{ui.backToWork}</BackLink>
           </div>
 
           {/* как в референсе: слева заголовок, справа карточки 2×2 */}
@@ -161,7 +171,7 @@ export function CyberrCase({ initialView, data, summary, full }: { initialView: 
           {/* боковое меню разделов, как в референсе */}
           <aside className="hidden lg:block">
             <div className="sticky top-32">
-              <Label className="mb-4">On this page</Label>
+              <Label className="mb-4">{ui.onThisPage}</Label>
               <nav className="flex flex-col border-l border-line">
                 {items.map((it) => (
                   <a
@@ -187,8 +197,8 @@ export function CyberrCase({ initialView, data, summary, full }: { initialView: 
                   </svg>
                 </span>
                 <span className="leading-tight">
-                  <span className="block text-[14px] font-medium text-ink">Research scripts</span>
-                  <span className="block text-[12px] text-muted">Interviews & usability tests</span>
+                  <span className="block text-[14px] font-medium text-ink">{ui.scriptsTitle}</span>
+                  <span className="block text-[12px] text-muted">{ui.scriptsText}</span>
                 </span>
               </Link>
               )}

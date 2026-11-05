@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import { content } from "@/content";
+import { useContent } from "@/i18n/LocaleProvider";
 import { gsap, MOTION_OK, useGsap } from "@/lib/gsap";
 import { SplitChars } from "@/components/SplitChars";
 import { ContactFields, submitContact } from "@/components/ContactForm";
@@ -73,6 +74,7 @@ const ICONS: Record<(typeof copy.skills)[number]["icon"], ReactNode> = {
 /* ---------- первый экран: заголовок, текст и фото с наклоном за курсором ---------- */
 
 function TiltPhoto() {
+  const copy = useContent().about;
   const card = useRef<HTMLDivElement>(null);
   const T = MOTION.tilt;
 
@@ -114,6 +116,7 @@ function TiltPhoto() {
 }
 
 function Hero() {
+  const copy = useContent().about;
   const root = useRef<HTMLElement>(null);
 
   useGsap(root, ({ q }) => {
@@ -160,6 +163,7 @@ function Hero() {
 /* ---------- цифры-одометры ---------- */
 
 function Stats() {
+  const copy = useContent().about;
   const root = useRef<HTMLElement>(null);
   const [started, setStarted] = useState(false);
   const [still, setStill] = useState(false);
@@ -202,6 +206,7 @@ function Stats() {
 const FACT = "text-[clamp(20px,2.4vw,32px)] leading-none font-medium tracking-[-0.02em] whitespace-nowrap text-ink";
 
 function Facts() {
+  const copy = useContent().about;
   const reel = [...copy.facts, ...copy.facts, ...copy.facts, ...copy.facts];
   return (
     <section className="my-6 py-6 md:my-10 md:py-10">
@@ -239,6 +244,7 @@ const SKILL_TONES = ["accent", "dark", "plain", "dark", "accent"] as const;
 const SKILL_SPAN = ["lg:col-span-2", "lg:col-span-2", "lg:col-span-2", "lg:col-span-3", "sm:col-span-2 lg:col-span-3"];
 
 function Skills() {
+  const copy = useContent().about;
   const root = useRef<HTMLElement>(null);
 
   useGsap(root, ({ q }) => {
@@ -295,6 +301,7 @@ const BTN =
 /* ---------- фон: текст проявляется по словам при прокрутке ---------- */
 
 function Background() {
+  const copy = useContent().about;
   const root = useRef<HTMLElement>(null);
 
   useGsap(root, ({ q }) => {
@@ -357,6 +364,7 @@ function Background() {
 /* ---------- сообщества: карточки-ссылки ---------- */
 
 function Community() {
+  const copy = useContent().about;
   const root = useRef<HTMLElement>(null);
 
   useGsap(root, ({ q }) => {
@@ -424,6 +432,7 @@ function Community() {
 /* ---------- призыв и форма (поля — из общей формы сайта) ---------- */
 
 function Contact() {
+  const copy = useContent().about;
   const root = useRef<HTMLElement>(null);
 
   useGsap(root, ({ q }) => {
