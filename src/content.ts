@@ -97,7 +97,7 @@ export const content = {
     ],
     skills: ["Product discovery", "User research", "Prototyping", "Design systems", "Dev handoff", "WCAG accessibility", "AI workflows"],
     // логотипы лежат в public/images/tools/<имя в нижнем регистре>.webp
-    tools: ["Figma", "Stitch", "Framer", "Lovable", "Claude", "Gemini", "Photoshop", "Midjourney", "Krea", "Firefly", "Lightroom", "Posthog", "Mobbin", "Lottie"],
+    tools: ["Figma", "Stitch", "Lovable", "Claude", "Gemini", "Photoshop", "Midjourney", "Krea", "Firefly", "Lightroom", "Posthog", "Mobbin", "Lottie"],
     explode: "Shake up the skills",
     tidy: "Put the skills back",
   },
