@@ -61,10 +61,10 @@ export const contentFr: Content = {
     items: [
       { name: "Cyberr", category: "Tests techniques", href: "/work/cyberr-technical-tests", cover: "/images/cases/cyberr-tests/Tests-Tests.webp" },
       { name: "Cyberr", category: "Onboarding", href: "/work/cyberr-onboarding", cover: "/images/cases/cyberr-onboarding/Onb-review.webp" },
-      { name: "Project Two", category: "Plateforme web", href: "#" },
-      { name: "Project Three", category: "Application mobile", href: "#" },
-      { name: "Project Four", category: "Design system", href: "#" },
-      { name: "Project Five", category: "Product design", href: "#" },
+      { name: "Revolut", category: "Application mobile", href: "#", art: "phone" as const },
+      { name: "Landing #1", category: "Landing page", href: "#", art: "gradient" as const },
+      { name: "Landing #2", category: "Landing page", href: "#", art: "gradient" as const },
+      { name: "Landing #3", category: "Landing page", href: "#", art: "gradient" as const },
     ],
   },
 

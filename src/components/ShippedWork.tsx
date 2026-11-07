@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { content } from "@/content";
 import { useContent } from "@/i18n/LocaleProvider";
+import { GradientCover, PhoneCover } from "./CoverArt";
 
 const { shipped } = content;
 const N = shipped.items.length;
@@ -17,7 +18,7 @@ const MOTION = {
   cardStart: 0.12,      // начало въезда первой карточки (доля фазы въезда)
   cardStagger: 0.08,    // сдвиг начала на каждую следующую
   cardDur: 0.42,        // длительность въезда (+ случайные 0…0.06)
-  fanDeg: 1.5,          // постоянный наклон: градусы × номер от центра
+  fanDeg: 0,            // постоянный наклон: градусы × номер от центра (0 — карточки стоят ровно)
   jitterRot: 18,        // случайный крен при въезде: ±9°
   jitterX: 90,          // случайный сдвиг вбок при въезде: ±45 px
   jitterDur: 0.06,
@@ -96,6 +97,10 @@ function CardBody({ item, index }: { item: (typeof shipped.items)[number]; index
     <>
       {item.cover ? (
         <Image src={item.cover} alt={`${item.name} — ${item.category}`} fill sizes="(max-width: 767px) 68vw, 700px" className="object-cover object-top" draggable={false} />
+      ) : item.art === "phone" ? (
+        <PhoneCover />
+      ) : item.art === "gradient" ? (
+        <GradientCover n={shipped.items.slice(0, index + 1).filter((it) => it.art === "gradient").length} />
       ) : (
         // заглушка: замените на cover в content.ts
         <span className="absolute inset-0 grid place-items-center bg-[#efe7e1]">
@@ -122,7 +127,7 @@ function SideLines() {
   );
 }
 
-const CARD_CLASS = "overflow-hidden rounded-2xl border border-black/[6%] shadow-[0_22px_48px_rgba(36,36,36,0.16),0_7px_16px_rgba(36,36,36,0.08)] select-none";
+const CARD_CLASS = "[container-type:size] overflow-hidden rounded-2xl border border-black/[6%] shadow-[0_22px_48px_rgba(36,36,36,0.16),0_7px_16px_rgba(36,36,36,0.08)] select-none";
 
 /**
  * «Work I've shipped». Десктоп с мышью: сцена закреплена, карточки вылетают снизу с креном и встают веером,

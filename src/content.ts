@@ -70,11 +70,12 @@ export const content = {
     items: [
       { name: "Cyberr", category: "Technical tests", href: "/work/cyberr-technical-tests", cover: "/images/cases/cyberr-tests/Tests-Tests.webp" },
       { name: "Cyberr", category: "Onboarding", href: "/work/cyberr-onboarding", cover: "/images/cases/cyberr-onboarding/Onb-review.webp" },
-      { name: "Project Two", category: "Web platform", href: "#" },
-      { name: "Project Three", category: "Mobile app", href: "#" },
-      { name: "Project Four", category: "Design system", href: "#" },
-      { name: "Project Five", category: "Product design", href: "#" },
-    ] as { name: string; category: string; href: string; cover?: string }[],
+      // art — нарисованная заглушка вместо cover: "phone" (мокап айфона с лого), "gradient" (градиент с названием)
+      { name: "Revolut", category: "Mobile app", href: "#", art: "phone" },
+      { name: "Landing #1", category: "Landing page", href: "#", art: "gradient" },
+      { name: "Landing #2", category: "Landing page", href: "#", art: "gradient" },
+      { name: "Landing #3", category: "Landing page", href: "#", art: "gradient" },
+    ] as { name: string; category: string; href: string; cover?: string; art?: "phone" | "gradient" }[],
   },
 
   // блок «Process is the product» (после Work I've shipped): сетка плиток — принципы, итоги, навыки, инструменты
