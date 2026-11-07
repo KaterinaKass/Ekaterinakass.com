@@ -6,7 +6,7 @@ import { content } from "@/content";
 import { useContent } from "@/i18n/LocaleProvider";
 import { gsap, MOTION_OK, useGsap } from "@/lib/gsap";
 import { SplitChars } from "@/components/SplitChars";
-import { ContactFields, submitContact } from "@/components/ContactForm";
+import { ContactFormBody } from "@/components/ContactForm";
 import { DotIconField, LineIcon, Odometer, TONES } from "@/components/ProcessSection";
 
 const { about: copy } = content;
@@ -160,8 +160,9 @@ function Hero() {
   );
 }
 
-/* ---------- цифры-одометры ---------- */
+/* ---------- цифры-одометры (пока скрыты: вместо них блок «Услуги») ---------- */
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- вернуть в AboutPage, когда блок с цифрами снова понадобится
 function Stats() {
   const copy = useContent().about;
   const root = useRef<HTMLElement>(null);
@@ -195,6 +196,156 @@ function Stats() {
               <p className="mt-3 text-[14px] text-muted md:text-[16px] md:leading-[1.4]">{s.label}</p>
             </div>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------- услуги: плашки-теги ---------- */
+
+const SERVICE_ICONS: Record<(typeof copy.services)[number]["icon"], ReactNode> = {
+  // лампочка
+  product: (
+    <>
+      <path d="M9 18h6M10 21h4" />
+      <path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3Z" />
+    </>
+  ),
+  // макет экрана
+  uxui: (
+    <>
+      <rect x="3.5" y="4.5" width="17" height="15" rx="2" />
+      <path d="M3.5 9h17M9 9v10.5" />
+    </>
+  ),
+  // лупа
+  research: (
+    <>
+      <circle cx="10.5" cy="10.5" r="6" />
+      <path d="m15 15 5 5" />
+    </>
+  ),
+  // галочка в кружке
+  testing: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="m8.5 12.2 2.4 2.4 4.6-4.8" />
+    </>
+  ),
+  // курсор
+  interaction: <path d="m5 4 13.5 6-5.8 1.9L10.8 18 5 4Z" />,
+  // связанные узлы
+  prototyping: (
+    <>
+      <rect x="3.5" y="4" width="6" height="5" rx="1.2" />
+      <rect x="14.5" y="15" width="6" height="5" rx="1.2" />
+      <path d="M9.5 6.5h3.5a2 2 0 0 1 2 2V15" />
+    </>
+  ),
+  // сетка компонентов
+  systems: (
+    <>
+      <rect x="4" y="4" width="6.5" height="6.5" rx="1.5" />
+      <rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5" />
+      <rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5" />
+      <circle cx="16.75" cy="16.75" r="3.25" />
+    </>
+  ),
+  // телефон
+  mobile: (
+    <>
+      <rect x="7" y="3" width="10" height="18" rx="2.2" />
+      <path d="M11 18h2" />
+    </>
+  ),
+  // глобус
+  web: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M3.5 12h17M12 3.5c2.3 2.4 3.4 5.2 3.4 8.5s-1.1 6.1-3.4 8.5c-2.3-2.4-3.4-5.2-3.4-8.5s1.1-6.1 3.4-8.5Z" />
+    </>
+  ),
+  // глаз
+  visual: (
+    <>
+      <path d="M2.8 12S6 5.8 12 5.8 21.2 12 21.2 12 18 18.2 12 18.2 2.8 12 2.8 12Z" />
+      <circle cx="12" cy="12" r="2.8" />
+    </>
+  ),
+  // звезда
+  brand: <path d="m12 3.8 2.5 5.2 5.6.7-4.1 3.9 1 5.6-5-2.7-5 2.7 1-5.6-4.1-3.9 5.6-.7L12 3.8Z" />,
+  // рупор
+  ad: (
+    <>
+      <path d="M4 10v4a1 1 0 0 0 1 1h2.5l7.5 4.5v-15L7.5 9H5a1 1 0 0 0-1 1Z" />
+      <path d="M18.5 9.5a3.5 3.5 0 0 1 0 5" />
+    </>
+  ),
+  // движение
+  animation: (
+    <>
+      <circle cx="15" cy="12" r="5" />
+      <path d="M3.5 9h4M2.5 12h5M3.5 15h4" />
+    </>
+  ),
+  // куб
+  "3d": (
+    <>
+      <path d="M12 3.5 19.5 7.7v8.6L12 20.5l-7.5-4.2V7.7L12 3.5Z" />
+      <path d="M4.5 7.7 12 12l7.5-4.3M12 12v8.5" />
+    </>
+  ),
+};
+
+// при каждом наведении — свой наклон: 1–2° влево или вправо (читается в hover:rotate-(--tilt))
+function tiltChip(e: MouseEvent<HTMLElement>) {
+  const deg = (1 + Math.random()) * (Math.random() < 0.5 ? -1 : 1);
+  e.currentTarget.style.setProperty("--tilt", `${deg.toFixed(2)}deg`);
+}
+
+function Services() {
+  const copy = useContent().about;
+  const root = useRef<HTMLElement>(null);
+
+  useGsap(root, ({ q }) => {
+    const mm = gsap.matchMedia();
+    mm.add(MOTION_OK, () => {
+      gsap
+        .timeline({ scrollTrigger: { trigger: root.current, start: "top 80%" } })
+        .from(q(".services-char"), { yPercent: 115, stagger: 0.025, duration: 0.9, ease: "power4.out" })
+        .from(q(".service-tag"), { y: 20, opacity: 0, stagger: 0.035, duration: 0.6, ease: "power3.out" }, 0.2);
+    });
+  });
+
+  return (
+    <section ref={root}>
+      <div className={WRAP}>
+        <div className={`${INNER} grid grid-cols-1 gap-8 border-t border-line py-10 md:grid-cols-[1fr_1.6fr] md:gap-16 md:py-20`}>
+          <h2 className="text-[9.8vw] leading-[1.08] font-normal text-ink md:text-[clamp(32px,4vw,56px)] md:leading-[1.14]">
+            <span className="block font-semibold">
+              <SplitChars text={copy.servicesTitle[0]} charClass="services-char" />
+            </span>
+            <span className="block">
+              <SplitChars text={copy.servicesTitle[1]} charClass="services-char" />
+            </span>
+          </h2>
+          {/* чипы без обводки (чтобы не путались с контурными кнопками): заливка в тон плитки, иконка; при наведении — чёрная рамка в 2px от плашки, подъём и случайный наклон */}
+          <ul className="flex flex-wrap content-start gap-2 md:gap-2.5">
+            {copy.services.map((s) => (
+              <li key={s.label} className="service-tag">
+                <span
+                  onMouseEnter={tiltChip}
+                  className="group flex items-center gap-2 rounded-xl bg-[#efe7e1] py-2.5 pr-4 pl-3 text-[15px] leading-none font-medium text-ink outline-1 outline-offset-2 outline-transparent transition-[translate,rotate,outline-color] duration-300 ease-[cubic-bezier(.22,1,.36,1)] outline-solid hover:-translate-y-0.5 hover:rotate-(--tilt) hover:outline-ink md:py-3 md:pr-5 md:pl-3.5 md:text-[18px]"
+                >
+                  <span className="text-accent transition-[rotate,scale] duration-300 ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-110 group-hover:-rotate-6">
+                    <LineIcon size={20}>{SERVICE_ICONS[s.icon]}</LineIcon>
+                  </span>
+                  {s.label}
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </section>
@@ -459,24 +610,23 @@ function Contact() {
           </h2>
           <p className="cta-fade mx-auto mt-5 max-w-[46ch] text-[16px] leading-[1.5] text-muted md:text-[18px]">{copy.ctaText}</p>
 
-          <form
-            onSubmit={submitContact}
-            className="cta-fade mx-auto mt-10 flex max-w-[560px] flex-col gap-5 rounded-[24px] border border-line bg-white px-6 pt-8 pb-10 text-left text-ink md:p-10"
-          >
-            <ContactFields tone="light" />
-          </form>
+          <ContactFormBody
+            tone="light"
+            className="cta-fade relative mx-auto mt-10 flex max-w-[560px] flex-col gap-5 rounded-[24px] border border-line bg-white px-6 pt-8 pb-10 text-left text-ink md:p-10"
+          />
         </div>
       </div>
     </section>
   );
 }
 
-/** Страница About: первый экран с фото, цифры, лента фактов, навыки, сообщества, фон и форма. */
+/** Страница About: первый экран с фото, услуги, лента фактов, навыки, сообщества, фон и форма. */
 export function AboutPage() {
   return (
     <div className="relative z-10 bg-cream">
       <Hero />
-      <Stats />
+      {/* <Stats /> — цифры (10+ лет и т.д.) пока скрыты */}
+      <Services />
       <Facts />
       <Skills />
       <Community />

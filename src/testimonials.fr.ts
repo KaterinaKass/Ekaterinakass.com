@@ -1,5 +1,33 @@
 // Переводы рекомендаций на французский. Ключ — name из src/testimonials.ts (имена не переводятся).
 export const testimonialsFr: Record<string, { role: string; text: string }> = {
+  "Melissa Weston": {
+    role: "Country Manager Allemagne, Tise",
+    text: "J'ai eu le plaisir de travailler avec Ekaterina sur un projet de design de site web. Elle a apporté de solides compétences sur Figma ainsi qu'une approche calme et organisée de la collaboration. Elle s'est montrée fiable, à l'écoute des retours et engagée à respecter le brief. Toute personne à la recherche d'une designer sur qui compter, avec de bonnes bases en product design, serait entre de bonnes mains.",
+  },
+  "Osmar P.": {
+    role: "Senior Software Engineer",
+    text: "Je recommande vivement Ekaterina, en tant que product designer comme en tant que coéquipière. Nous avons travaillé ensemble sur des fonctionnalités produit et UI chez Cyberr, où elle a contribué à façonner les parcours et les visuels de manière à rendre l'implémentation beaucoup plus claire et plus fluide. Elle a un excellent sens du détail, prépare son travail de design avec soin pour le développement et veille à la cohérence des visuels, des assets et des modes clair et sombre. Au-delà de ses compétences en design, Ekaterina est bienveillante, collaborative et agréable à côtoyer, ce qui fait une vraie différence dans des équipes produit qui avancent vite.",
+  },
+  "Laurent Halimi": {
+    role: "Fondateur & CEO, Cyberr.ai",
+    text: "J'ai eu l'occasion de travailler avec Ekaterina en tant que UX Designer, poste dans lequel elle a contribué à plusieurs initiatives produit clés. Elle adopte une approche du design réfléchie et centrée sur l'utilisateur, et cherche toujours à comprendre à la fois les besoins des utilisateurs et les objectifs business.",
+  },
+  "Daniel Oliveira": {
+    role: "Développeur Full Stack",
+    text: "Ekaterina trouve toujours le moyen de transformer des idées en solutions vraiment nouvelles et innovantes. C'est sans aucun doute un atout majeur pour toute équipe, grâce à sa capacité à apporter un regard neuf sur chaque défi.\n\nTout au long de notre collaboration sur des initiatives produit et design, elle a constamment apporté clarté, créativité et un grand souci du détail. Je la recommande vivement à toute équipe à la recherche d'une designer talentueuse et tournée vers l'avenir.",
+  },
+  "Mehdi Joubeir": {
+    role: "Managing Director chez Cyberr, Benelux",
+    text: "Je recommande vivement Ekaterina, avec qui j'ai eu le plaisir de travailler chez Cyberr.\n\nElle a apporté une grande qualité graphique à nos présentations et a réussi à harmoniser notre identité visuelle, aussi bien dans la documentation que sur notre plateforme SaaS. J'ai reçu de manière constante des retours très positifs sur son travail de la part des différentes équipes impliquées.\n\nRéactive, fiable, calme et très agréable à côtoyer, je la recommande vivement.",
+  },
+  "Vitor Leonardo Esser": {
+    role: "Software Engineer",
+    text: "Nous avons travaillé chez Cyberr dans la même équipe : je me concentrais sur le développement et elle pilotait le design. Elle était responsable du prototypage et de l'affinement des maquettes de notre landing page ainsi que de l'ensemble de la plateforme de recrutement en cybersécurité.\n\nSon travail alliait constamment créativité et utilisabilité, et elle allait toujours plus loin pour que nos designs soient à la fois attrayants et pratiques pour les utilisateurs. Travailler avec elle rendait le développement plus fluide, car elle communiquait ses idées de façon claire et réfléchie.\n\nJe recommande vivement Ekaterina pour tout poste en design. Ses compétences, son engagement et son souci du détail font d'elle un atout précieux pour toute équipe.",
+  },
+  "Anyue Wang": {
+    role: "Applied AI Engineer",
+    text: "Ekaterina est une designer UI/UX exceptionnelle et une collègue formidable. Elle est travailleuse, patiente et ouverte d'esprit, toujours prête à explorer de nouvelles idées et de nouvelles perspectives.\n\nElle gère les tâches urgentes avec efficacité sans jamais sacrifier la qualité, et son approche calme et réfléchie rend les situations même les plus difficiles plus simples à gérer. Au-delà de ses compétences techniques, elle apporte des idées pertinentes et inspirantes qui élèvent véritablement le travail de l'équipe.",
+  },
   "Marcos G. Souza": {
     role: "Responsable Engineering",
     text: "J'ai eu l'occasion de travailler avec Ekaterina, et elle se distingue comme une designer dotée d'un grand souci du détail et d'un fort engagement envers la qualité. Son travail allie systématiquement des interfaces belles et soignées à des expériences utilisateur mûrement réfléchies, qui rendent les produits d'une simplicité d'utilisation évidente.\n\nElle assimile rapidement des exigences complexes, les transforme en parcours utilisateur clairs et élève le design visuel sans jamais perdre de vue l'utilisabilité. Elle collabore avec fluidité avec les équipes produit et engineering, et apporte un niveau de soin et de cohérence qui améliore les résultats business.\n\nToute équipe à la recherche d'une designer alliant une maîtrise raffinée de l'UI, une solide réflexion UX et un œil méticuleux pour le détail gagnera à compter Ekaterina parmi ses membres.",

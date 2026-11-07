@@ -180,6 +180,25 @@ export const content = {
       { value: "2006", label: "presenting projects to stakeholders since" },
       { value: "MSc", label: "in Interaction Design" },
     ],
+    // блок «Услуги» — плашки-теги под первым экраном (заменил цифры stats, они пока скрыты)
+    servicesTitle: ["Services", "& expertise"],
+    // icon: product | uxui | research | testing | interaction | prototyping | systems | mobile | web | visual | brand | ad | animation | 3d
+    services: [
+      { icon: "product", label: "Product Design" },
+      { icon: "uxui", label: "UX/UI Design" },
+      { icon: "research", label: "UX Research" },
+      { icon: "testing", label: "Usability Testing" },
+      { icon: "interaction", label: "Interaction Design" },
+      { icon: "prototyping", label: "Prototyping" },
+      { icon: "systems", label: "Design Systems" },
+      { icon: "mobile", label: "Mobile App Design" },
+      { icon: "web", label: "Web Design" },
+      { icon: "visual", label: "Visual Design" },
+      { icon: "brand", label: "Brand Design" },
+      { icon: "ad", label: "Ad Design" },
+      { icon: "animation", label: "Animation" },
+      { icon: "3d", label: "3D Design" },
+    ],
     facts: [
       "Mobile-first",
       "High-load products",
@@ -240,7 +259,18 @@ export const content = {
     message: "Message",
     placeholders: { name: "Jane Doe", email: "janedoe@company.com", message: "A few lines about what you have in mind..." },
     send: "Send message",
+    sending: "Sending…",
     close: "Close",
+    // ошибки под полями; ошибка пустого поля появляется только после нажатия «Send», неверная почта — когда ушли с поля
+    errors: {
+      name: "Please enter your name",
+      emailEmpty: "Please enter your email",
+      email: "Enter an email like name@company.com",
+      message: "Please write a few words",
+    },
+    didYouMean: "Did you mean",
+    sent: { title: "Thank you!", text: "Your message is on its way. I’ll get back to you within a couple of days.", again: "Send another message" },
+    failed: "Something went wrong and the message wasn’t sent. Please try again or email me directly:",
   },
 
   menu: {

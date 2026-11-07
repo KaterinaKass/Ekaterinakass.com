@@ -1,9 +1,44 @@
 // Рекомендации с LinkedIn (linkedin.com/in/ekaterinakass/details/recommendations). Порядок как на LinkedIn, новые сверху.
-// photo: путь в public; без фото показываются инициалы. Абзацы в text разделены пустой строкой.
+// photo: путь в public; сейчас на сайте не показывается (аватарки скрыты). Абзацы в text разделены пустой строкой.
 
 export type Testimonial = { name: string; role: string; photo?: string; text: string };
 
 export const testimonials: Testimonial[] = [
+  {
+    "name": "Melissa Weston",
+    "role": "Country Manager Germany, Tise",
+    "text": "I had the pleasure of working with Ekaterina during a website design project, and she brought solid Figma skills and a calm, organised approach to the collaboration. She was reliable, receptive to feedback, and committed to delivering on the brief. Anyone looking for a dependable designer with a good foundation in product design would be in safe hands."
+  },
+  {
+    "name": "Osmar P.",
+    "role": "Senior Software Engineer",
+    "text": "I highly recommend Ekaterina as a product designer and teammate. We worked together on product and UI features at Cyberr, where she helped shape flows and visuals in a way that made implementation much clearer and smoother. She has a strong eye for detail, prepares design work thoughtfully for development, and cares about consistency across visuals, assets, and light and dark mode. Beyond her design skills, Ekaterina is kind, collaborative, and easy to work with, which makes a real difference in fast-moving product teams."
+  },
+  {
+    "name": "Laurent Halimi",
+    "role": "Founder & CEO, Cyberr.ai",
+    "text": "I had the opportunity to work with Ekaterina as a UX Designer, where she contributed to several key product initiatives. She brings a thoughtful, user-centered approach to design and is always keen to understand both user needs and business goals."
+  },
+  {
+    "name": "Daniel Oliveira",
+    "role": "Full Stack Developer",
+    "text": "Ekaterina always finds a way to turn ideas into truly fresh and innovative solutions. She definitely is a huge asset to any team thanks to her ability to unlock a new perspective on any challenge.\n\nDuring our collaboration on product and design initiatives, she consistently brought clarity, creativity, and strong attention to detail. I highly recommend her to any team looking for a talented and forward-thinking designer."
+  },
+  {
+    "name": "Mehdi Joubeir",
+    "role": "Managing Director at Cyberr, Benelux",
+    "text": "I highly recommend Ekaterina, with whom I had the pleasure of working at Cyberr.\n\nShe brought strong graphic quality to our presentations and successfully standardized our visual identity across both documentation and our SaaS platform. I have consistently received very positive feedback regarding her work from the different teams involved.\n\nResponsive, reliable, calm, and a pleasure to work with, I strongly recommend her."
+  },
+  {
+    "name": "Vitor Leonardo Esser",
+    "role": "Software Engineer",
+    "text": "We worked at Cyberr on the same team, where I focused on development and she led the design efforts. She was responsible for prototyping and refining the designs for our landing page as well as the entire cybersecurity recruitment platform.\n\nHer work consistently balanced creativity with usability, and she always went the extra mile to make sure our designs were both visually appealing and practical for users. Collaborating with her made the development process smoother, as she communicated her ideas clearly and thoughtfully.\n\nI highly recommend Ekaterina for any design role. Her skills, dedication, and attention to detail make her a valuable asset to any team."
+  },
+  {
+    "name": "Anyue Wang",
+    "role": "Applied AI Engineer",
+    "text": "Ekaterina is an exceptional UI/UX designer and a wonderful colleague to work with. She is hardworking, patient, and open-minded, always willing to explore new ideas and perspectives.\n\nShe manages urgent tasks efficiently without compromising quality, and her calm, thoughtful approach makes even challenging situations easier to handle. Beyond her technical skills, she brings insightful and inspiring ideas that truly elevate the team's work."
+  },
   {
     "name": "Marcos G. Souza",
     "role": "Engineering Leader",

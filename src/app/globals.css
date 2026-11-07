@@ -39,6 +39,8 @@
   --muted: #636363;
   --line: #c4bbb4;
   --accent: #0388ee;
+  /* ошибки в формах: тёплый красный, читается и на белом, и на чёрном */
+  --error: #f0533a;
 }
 
 @theme inline {
@@ -47,6 +49,7 @@
   --color-muted: var(--muted);
   --color-line: var(--line);
   --color-accent: var(--accent);
+  --color-error: var(--error);
   --font-display: var(--font-display-src), system-ui, sans-serif;
   --font-sans: var(--font-body-src), system-ui, sans-serif;
 }
@@ -201,4 +204,20 @@ html.font-neue .font-wide {
 /* Лента фактов на странице About: останавливается под курсором (как у оригинала, reference/sarottofabio-about) */
 .marquee-hover-pause:hover {
   animation-play-state: paused;
+}
+
+/* облачко-подсказка под полем формы: короткий подъём, как у появления полей */
+@keyframes cf-tip-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+.cf-tip {
+  animation: cf-tip-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .cf-tip {
+    animation: none;
+  }
 }
