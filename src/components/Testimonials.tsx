@@ -133,6 +133,9 @@ export function Testimonials() {
     const el = root.current!;
     const text = el.querySelector<HTMLElement>("[data-current] .reviews-text");
     if (!text || !window.matchMedia(MOTION_OK).matches) return;
+    // на мобильном ждём, пока превью подберётся по строкам: иначе анимация смены отзыва стартует
+    // на временном тексте и обрывается на середине — автор и должность остаются прозрачными
+    if (window.matchMedia(MOBILE_MQ).matches && fit?.text !== t.text) return;
     const isFirst = first.current;
     const changed = shownIndex.current !== index;
     first.current = false;
@@ -166,7 +169,7 @@ export function Testimonials() {
       extra?.kill();
       split.revert();
     };
-  }, [index, expanded, fit]);
+  }, [index, expanded, fit, t.text]);
 
   const go = (step: number) => {
     if (busy.current) return;
