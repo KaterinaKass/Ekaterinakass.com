@@ -191,13 +191,13 @@ export const content = {
       "Loves to travel",
       "New people, new cultures",
     ],
-    skillsTitle: ["My Product Design", "skills"],
+    skillsTitle: ["Product Design", "skills"],
     // icon: ux | visual | research | team | analytics (линейные иконки в AboutPage.tsx)
     skills: [
       { icon: "ux", title: "User Experience and User Interface", text: "Proficiency in creating user stories, storyboards, personas, sitemaps, wireframes, low and high-fidelity prototypes." },
       { icon: "analytics", title: "Analytical skills", text: "I am passionate to do research and data analysis. I can set up proper KPIs and extract information from data." },
       { icon: "research", title: "User research and Empathy", text: "Because of my experience in Service and Social design, I understand the role of user-centered design and I can lead user interviews with a sense of empathy. I can plan and conduct user testing and surveys." },
-      { icon: "team", title: "Teamwork and Communication skills", text: "I have several excellent experiences working as a part of a team. I have been practicing presenting projects to stakeholders since 2006." },
+      { icon: "team", title: "Teamwork and Communication", text: "I have several excellent experiences working as a part of a team. I have been practicing presenting projects to stakeholders since 2006." },
       { icon: "visual", title: "Visual design skills", text: "I understand typography, color theory, visual hierarchy and I am updated in the latest design trends." },
     ] as { icon: "ux" | "visual" | "research" | "team" | "analytics"; title: string; text: string }[],
     // карточки сообществ (после навыков). logo: true — картинка-логотип на светлом фоне, иначе фото на всю карточку
@@ -209,7 +209,7 @@ export const content = {
         image: "/images/community/friends-of-figma-luxembourg.webp",
         alt: "Friends of Figma Luxembourg meetup",
         href: "https://friends.figma.com/luxembourg",
-        cta: "See events",
+        cta: "See our events",
       },
       {
         name: "DevFest Luxembourg",

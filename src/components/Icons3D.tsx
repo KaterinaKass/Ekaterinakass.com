@@ -30,6 +30,9 @@ function drawPenToolFace() {
   const g = c.getContext("2d")!;
   const r = N * 0.21;
   const inset = N * 0.03;
+  // поле вокруг рамки — синее, а не прозрачное: иначе край лицевой стороны выглядит чёрной полосой у синей боковой грани
+  g.fillStyle = PLATE_BORDER;
+  g.fillRect(0, 0, N, N);
   g.beginPath();
   g.roundRect(inset, inset, N - inset * 2, N - inset * 2, r);
   g.fillStyle = PLATE_BG;
@@ -284,7 +287,7 @@ export function Icons3D({ progress, customIconSrc, className = "" }: Props) {
       });
 
       const plate = new THREE.Group();
-      plate.add(new THREE.Mesh(sideGeo, new THREE.MeshStandardMaterial({ color: PLATE_BG, roughness: 0.6, metalness: 0, envMapIntensity: 0.25 })));
+      plate.add(new THREE.Mesh(sideGeo, new THREE.MeshStandardMaterial({ color: PLATE_BORDER, roughness: 0.6, metalness: 0, envMapIntensity: 0.25 }) /* боковая грань — синяя, в цвет обводки */));
       const front = new THREE.Mesh(faceGeo, faceMat);
       front.position.z = DEPTH / 2 + 0.001;
       const back = new THREE.Mesh(faceGeo, faceMat);

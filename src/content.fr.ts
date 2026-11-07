@@ -150,7 +150,7 @@ export const contentFr: Content = {
       "Adore voyager",
       "Nouvelles rencontres, nouvelles cultures",
     ],
-    skillsTitle: ["Mes compétences", "en product design"],
+    skillsTitle: ["Compétences", "en product design"],
     skills: [
       { icon: "ux", title: "Expérience et interface utilisateur", text: "Maîtrise des user stories, storyboards, personas, plans de site, wireframes et prototypes basse et haute fidélité." },
       { icon: "analytics", title: "Esprit analytique", text: "J’aime la recherche et l’analyse de données. Je sais définir les bons KPI et tirer des enseignements des données." },
@@ -160,7 +160,7 @@ export const contentFr: Content = {
     ],
     communityTitle: ["Communauté", "& événements"],
     community: [
-      { ...content.about.community[0], role: "Responsable de la communauté", alt: "Meetup Friends of Figma Luxembourg", cta: "Voir les événements" },
+      { ...content.about.community[0], role: "Responsable de la communauté", alt: "Meetup Friends of Figma Luxembourg", cta: "Voir nos événements" },
       { ...content.about.community[1], role: "Organisatrice et directrice de la création", alt: "Logo DevFest Luxembourg", cta: "Visiter devfest.lu" },
     ],
     background:

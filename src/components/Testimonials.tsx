@@ -24,6 +24,50 @@ function preview(text: string) {
   return cut.slice(0, space > 0 ? space : PREVIEW).replace(/[\s.,;:!?—–-]+$/, "") + "…";
 }
 
+/** На мобильном превью режется не по символам, а по строкам: столько строк, «…» в конце последней. */
+const MOBILE_LINES = 8;
+const MOBILE_MQ = "(max-width: 767px)";
+
+/**
+ * Подбирает самое длинное начало текста (по словам), которое с «…» влезает в MOBILE_LINES строк
+ * в контейнере like (та же ширина и шрифт). Возвращает null, если весь текст и так помещается.
+ */
+function fitLines(text: string, like: HTMLElement) {
+  const probe = document.createElement("div");
+  probe.className = like.className;
+  probe.style.cssText = `position:absolute;visibility:hidden;pointer-events:none;left:0;top:0;width:${like.getBoundingClientRect().width}px`;
+  like.parentElement!.appendChild(probe);
+  const render = (t: string) => {
+    probe.replaceChildren(
+      ...t.split("\n\n").map((para) => {
+        const p = document.createElement("p");
+        p.className = "mb-[0.6em] last:mb-0";
+        p.textContent = para;
+        return p;
+      }),
+    );
+    return probe.getBoundingClientRect().height;
+  };
+  const line = parseFloat(getComputedStyle(probe).lineHeight);
+  const max = line * MOBILE_LINES + 1;
+  let result: string | null = null;
+  if (render(text) > max) {
+    // слова вместе с разделителями, чтобы сохранить переносы абзацев
+    const words = text.split(/(?<=\s)/);
+    const cut = (n: number) => words.slice(0, n).join("").replace(/[\s.,;:!?—–-]+$/, "") + "…";
+    let lo = 1;
+    let hi = words.length - 1;
+    while (lo < hi) {
+      const mid = Math.ceil((lo + hi) / 2);
+      if (render(cut(mid)) <= max) lo = mid;
+      else hi = mid - 1;
+    }
+    result = cut(lo);
+  }
+  probe.remove();
+  return result;
+}
+
 /** Один размер для всех цитат: как у подзаголовка в блоке проектов (Projects.tsx), чуть крупнее на мобильном. */
 const QUOTE_SIZE = "text-[18px] leading-[1.4] md:text-[clamp(18px,1.5vw,22px)] md:leading-[1.45]";
 
@@ -52,6 +96,8 @@ export function Testimonials() {
   const root = useRef<HTMLElement>(null);
   const [index, setIndex] = useState(0);
   const [expanded, setExpanded] = useState(false);
+  // мобильное превью текущего отзыва, подобранное по строкам (null — режем по символам, как на десктопе)
+  const [fit, setFit] = useState<{ text: string; cut: string | null } | null>(null);
   const busy = useRef(false);
   const first = useRef(true);
   const t = testimonials[index];
@@ -67,6 +113,26 @@ export function Testimonials() {
         .from(q(".reviews-vrule"), { scaleY: 0, transformOrigin: "top", duration: 1.2, ease: "power2.out", stagger: 0.1 }, 0);
     });
   });
+
+  // на мобильном подбираем превью по числу строк; пересчёт при смене отзыва, языка и ширины экрана
+  useLayoutEffect(() => {
+    const el = root.current!;
+    const mq = window.matchMedia(MOBILE_MQ);
+    const measure = () => {
+      const box = el.querySelector<HTMLElement>("[data-current] .reviews-text");
+      if (!mq.matches || !box) return setFit(null);
+      setFit({ text: t.text, cut: fitLines(t.text, box) });
+    };
+    measure();
+    let w = window.innerWidth;
+    const onResize = () => {
+      if (window.innerWidth === w) return; // на телефоне высота меняется при прокрутке — это не повод пересчитывать
+      w = window.innerWidth;
+      measure();
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [t.text]);
 
   // Цитата делится на строки внутри масок, строки выезжают снизу — как буквы заголовков на сайте.
   // Первый раз — по скроллу, при смене отзыва — сразу; при «Show more» текст просто перестраивается.
@@ -108,7 +174,7 @@ export function Testimonials() {
       extra?.kill();
       split.revert();
     };
-  }, [index, expanded]);
+  }, [index, expanded, fit]);
 
   const go = (step: number) => {
     if (busy.current) return;
@@ -210,9 +276,10 @@ export function Testimonials() {
         <blockquote className="reviews-quote relative order-2 grid px-6 pt-8 text-cream md:order-none md:px-[clamp(24px,3vw,48px)] md:pt-14 md:pb-16">
           {testimonials.map((item, k) => {
             const current = k === index;
-            const long = item.text.length > PREVIEW;
+            const mobile = current && fit?.text === item.text ? fit : null;
+            const long = mobile ? mobile.cut !== null : item.text.length > PREVIEW;
             const open = current && expanded;
-            const text = open ? item.text : preview(item.text);
+            const text = open ? item.text : mobile ? (mobile.cut ?? item.text) : preview(item.text);
             return (
               <div
                 key={k}
