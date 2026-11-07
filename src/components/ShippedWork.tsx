@@ -58,7 +58,28 @@ const JITTER = shipped.items.map((_, k) => {
 });
 
 const cardW = (w: number) => clamp(Math.round(0.3 * w), 420, 700);
-const railStep = (w: number) => Math.max(cardW(w) + clamp(Math.round(0.035 * w), 48, 170), Math.round(0.25 * w));
+
+/** Десктопная сцена: карточки крупнее, ряд начинается от левого края контента (а не от центра). */
+const SCENE = {
+  widthShare: 0.42,  // ширина карточки до масштаба ряда, доля экрана
+  minW: 480,
+  maxW: 960,
+  fillH: 0.94,       // карточка занимает до 94 % высоты между заголовком и кнопкой
+  gap: (W: number) => clamp(Math.round(0.022 * W), 28, 56), // зазор между карточками на экране, px
+  edge: (W: number) => Math.round(0.05 * W + clamp(0.035 * W, 24, 56)), // отступ ряда от края экрана: боковая линия 5 % + поле
+};
+/** Размер карточки сцены (до масштаба ряда): ограничен и шириной, и высотой экрана. */
+const sceneCardW = (W: number, vh: number) => {
+  const byH = ((vh - MOTION.headSpace - MOTION.footSpace) * SCENE.fillH) / (0.75 * MOTION.rowScale);
+  return Math.round(Math.min(clamp(SCENE.widthShare * W, SCENE.minW, SCENE.maxW), Math.max(byH, 360)));
+};
+/** Шаг ряда на экране и длина пути ленты, чтобы последняя карточка доехала до правого края контента. */
+const sceneGeom = (W: number, vh: number) => {
+  const w = sceneCardW(W, vh), vw = w * MOTION.rowScale, step = vw + SCENE.gap(W), edge = SCENE.edge(W);
+  const travel = Math.max(0, (N - 1) * step + vw - (W - 2 * edge));
+  return { w, h: Math.round((w * 3) / 4), vw, step, edge, travel, x0: edge + vw / 2 - W / 2 };
+};
+const railStep = (W: number) => sceneGeom(W, window.innerHeight).step;
 
 function Header({ className = "" }: { className?: string }) {
   const { shipped } = useContent();
@@ -174,7 +195,7 @@ function Scene() {
     let drag = 0;  // сдвиг ряда мышью, px
     let mx = 0;    // курсор по X, −1…1
 
-    const half = () => ((N - 1) / 2) * railStep(window.innerWidth);
+    const travel = () => sceneGeom(window.innerWidth, window.innerHeight).travel;
     const pinned = () => {
       const r = el.getBoundingClientRect();
       return r.top <= 1 && r.bottom >= window.innerHeight - 1;
@@ -189,20 +210,21 @@ function Scene() {
 
     function render() {
       const W = window.innerWidth, vh = window.innerHeight;
-      const w = cardW(W), h = Math.round((w * 3) / 4), step = railStep(W), hf = half();
+      const { w, h, step, x0, travel: tr } = sceneGeom(W, vh);
       settled = clamp((enter - MOTION.dragFrom) / 0.1, 0, 1);
 
       const l = layer.current!;
       l.style.pointerEvents = enter > 0.1 ? "auto" : "none";
       l.style.cursor = dragging ? "grabbing" : settled > 0.8 ? "grab" : "default";
 
-      const shift = -2 * hf * rail + drag;
+      // лента: от левого края до момента, когда последняя карточка у правого края; мышью — в тех же пределах
+      const shift = clamp(-tr * rail + drag, -tr, 0);
       const centerY = MOTION.headSpace + (vh - MOTION.headSpace - MOTION.footSpace) / 2 - vh / 2;
       cards.current.forEach((card, k) => {
         const c = k - (N - 1) / 2, j = JITTER[k];
         const u = clamp((enter - (MOTION.cardStart + MOTION.cardStagger * k)) / (MOTION.cardDur + j.dur), 0, 1);
         const e = backOut(u);
-        const x = c * step + hf + j.x * (1 - e) + shift * settled + MOTION.cursorShift * mx * c * (1 - settled);
+        const x = x0 + k * step + j.x * (1 - e) + shift * settled + MOTION.cursorShift * mx * c * (1 - settled);
         const y = centerY + (1 - e) * vh;
         const rot = MOTION.fanDeg * c + j.rot * (1 - e);
         const sc = MOTION.rowScale * (MOTION.scaleFrom + (1 - MOTION.scaleFrom) * Math.min(e, 1));
@@ -210,6 +232,8 @@ function Scene() {
         card.style.height = `${h}px`;
         card.style.margin = `${-h / 2}px 0 0 ${-w / 2}px`;
         card.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${rot}deg) scale(${sc})`;
+        // наведение (свойство scale поверх transform) — только когда ряд встал и его не тянут
+        card.dataset.hover = settled > 0.8 && !dragging ? "on" : "off";
         card.style.zIndex = String((N - k) * 20);
       });
 
@@ -224,7 +248,6 @@ function Scene() {
 
     // перетаскивание ряда мышью
     let pid = -1, pending = false, dragging = false, x0 = 0, y0 = 0, d0 = 0, raf = 0;
-    const lim = () => half();
     const down = (e: PointerEvent) => {
       if (settled < 0.8 || e.button !== 0) return;
       pid = e.pointerId; pending = true; dragging = false; x0 = e.clientX; y0 = e.clientY; d0 = drag; moved.current = false;
@@ -243,7 +266,8 @@ function Scene() {
         }
         if (dragging) {
           e.preventDefault();
-          drag = clamp(d0 + dx, -lim(), lim());
+          const tr = travel();
+          drag = clamp(d0 + dx, -tr * (1 - rail), tr * rail);
           if (Math.abs(dx) > MOTION.clickCancel) moved.current = true;
         }
       }
@@ -257,9 +281,9 @@ function Scene() {
     };
     const key = (e: KeyboardEvent) => {
       if (settled < 0.8 || !pinned()) return;
-      const step = railStep(window.innerWidth);
-      if (e.key === "ArrowLeft") drag = clamp(drag + step, -lim(), lim());
-      else if (e.key === "ArrowRight") drag = clamp(drag - step, -lim(), lim());
+      const step = railStep(window.innerWidth), tr = travel();
+      if (e.key === "ArrowLeft") drag = clamp(drag + step, -tr * (1 - rail), tr * rail);
+      else if (e.key === "ArrowRight") drag = clamp(drag - step, -tr * (1 - rail), tr * rail);
       else return;
       render();
     };
@@ -303,7 +327,7 @@ function Scene() {
               ref={(n) => { if (n) cards.current[i] = n; }}
               onClick={(e) => { if (moved.current) e.preventDefault(); }}
               onDragStart={(e) => e.preventDefault()}
-              className={`absolute top-1/2 left-1/2 block will-change-transform ${CARD_CLASS}`}
+              className={`absolute top-1/2 left-1/2 block will-change-transform ${CARD_CLASS} transition-[scale] duration-300 ease-out data-[hover=on]:hover:!z-[500] data-[hover=on]:hover:scale-[1.04]`}
               style={{ transform: "translate3d(0, 120vh, 0)" }}
             >
               <CardBody item={item} index={i} />

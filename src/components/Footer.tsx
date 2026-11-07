@@ -9,8 +9,13 @@ import { ContactForm } from "./ContactForm";
 import { attachNameHover, HOVER_MQ } from "@/lib/nameHover";
 
 
+/** Выравнивание оптического размера: на сетке 24 Instagram — 16, LinkedIn — 18, «@» — круг 20.
+ *  Квадраты приводим к 17.6, круг к 18.2 (круг выглядит меньше квадрата той же ширины); линия остаётся 2. */
+const ICON_SCALE = { instagram: 1.1, linkedin: 0.978, mail: 0.91 } as const;
+
 /** Иконки соцсетей как в референсе: 48px, контурные знаки (сетка 24, линия 2) без круга вокруг. */
 function Icon({ name }: { name: "instagram" | "linkedin" | "mail" }) {
+  const k = ICON_SCALE[name];
   return (
     <svg
       width="48"
@@ -25,6 +30,7 @@ function Icon({ name }: { name: "instagram" | "linkedin" | "mail" }) {
       // эффект наведения — на самом значке, а не на ссылке: у ссылки прозрачность анимирует GSAP
       className="transition-opacity group-hover:opacity-70"
     >
+      <g transform={`translate(12 12) scale(${k}) translate(-12 -12)`} strokeWidth={2 / k}>
       {name === "instagram" && (
         <>
           <path d="M4 8a4 4 0 0 1 4 -4h8a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4z" />
@@ -47,6 +53,7 @@ function Icon({ name }: { name: "instagram" | "linkedin" | "mail" }) {
           <path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8" />
         </>
       )}
+      </g>
     </svg>
   );
 }
