@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { type CSSProperties, useLayoutEffect, useRef, useState } from "react";
 import { useContent, useTestimonials } from "@/i18n/LocaleProvider";
 import { testimonials as all } from "@/testimonials";
 import { gsap, MOTION_OK, useGsap } from "@/lib/gsap";
@@ -35,7 +35,7 @@ const MOBILE_MQ = "(max-width: 767px)";
 function fitLines(text: string, like: HTMLElement) {
   const probe = document.createElement("div");
   probe.className = like.className;
-  probe.style.cssText = `position:absolute;visibility:hidden;pointer-events:none;left:0;top:0;width:${like.getBoundingClientRect().width}px`;
+  probe.style.cssText = `position:absolute;visibility:hidden;pointer-events:none;left:0;top:0;min-height:0;width:${like.getBoundingClientRect().width - 4}px`; // запас 4px: нарезка строк SplitText переносит чуть раньше, чем обычный текст
   like.parentElement!.appendChild(probe);
   const render = (t: string) => {
     probe.replaceChildren(
@@ -70,14 +70,6 @@ function fitLines(text: string, like: HTMLElement) {
 
 /** Один размер для всех цитат: как у подзаголовка в блоке проектов (Projects.tsx), чуть крупнее на мобильном. */
 const QUOTE_SIZE = "text-[18px] leading-[1.4] md:text-[clamp(18px,1.5vw,22px)] md:leading-[1.45]";
-
-const initials = (name: string) =>
-  name
-    .split(" ")
-    .filter((w) => /^[A-ZА-Я]/.test(w))
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join("");
 
 function Arrow({ dir }: { dir: "prev" | "next" }) {
   return (
@@ -254,15 +246,8 @@ export function Testimonials() {
           <svg className="reviews-fade mb-8 hidden text-accent md:block" width="36" height="28" viewBox="0 0 36 28" fill="currentColor" aria-hidden>
             <path d="M0 16.5C0 7.9 4.9 1.9 13.3 0l1.4 3.6C9.9 5.2 7.5 8.3 7.2 12.4H14V28H0V16.5Zm21 0C21 7.9 25.9 1.9 34.3 0l1.4 3.6c-4.8 1.6-7.2 4.7-7.5 8.8H35V28H21V16.5Z" />
           </svg>
-          <div className="reviews-person reviews-fade flex items-center gap-4">
-            {t.photo ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={t.photo} alt="" width={56} height={56} className="size-14 shrink-0 rounded-xl object-cover" />
-            ) : (
-              <span className="grid size-14 shrink-0 place-items-center rounded-xl bg-cream text-[18px] font-semibold text-ink">
-                {initials(t.name)}
-              </span>
-            )}
+          {/* аватарки скрыты: только имя и должность */}
+          <div className="reviews-person reviews-fade flex items-center gap-4 max-md:min-h-[65px]">
             <div className="min-w-0">
               <p className="text-[18px] leading-tight font-medium text-cream">{t.name}</p>
               <p className="mt-1 text-[14px] leading-snug text-cream/50">{t.role}</p>
@@ -287,28 +272,34 @@ export function Testimonials() {
                 data-current={current || undefined}
                 className={`[grid-area:1/1] ${QUOTE_SIZE} ${current ? "" : "invisible max-md:hidden"}`}
               >
-                {/* key меняется вместе с текстом: React пересоздаёт блок целиком, а не правит строки, которые нарезал SplitText */}
-                <div key={current ? `c${k}${open ? "o" : ""}` : "n"} className="reviews-text">
+                {/* key меняется вместе с текстом: React пересоздаёт блок целиком, а не правит строки, которые нарезал SplitText.
+                    На мобильном высота текста всегда MOBILE_LINES строк, чтобы блок не прыгал между отзывами */}
+                <div
+                  key={current ? `c${k}-${text.length}` : "n"}
+                  className={`reviews-text ${open ? "" : "max-md:min-h-[calc(var(--lines)*1lh)]"}`}
+                  style={{ "--lines": MOBILE_LINES } as CSSProperties}
+                >
                   {text.split("\n\n").map((para, p) => (
                     <p key={p} className="mb-[0.6em] last:mb-0">
                       {para}
                     </p>
                   ))}
                 </div>
-                {long && (
-                  <button
+                {/* у коротких отзывов кнопки нет, но на мобильном место под неё остаётся — высота блока та же */}
+                <button
                     type="button"
-                    tabIndex={current ? 0 : -1}
+                    tabIndex={current && long ? 0 : -1}
+                    aria-hidden={!long || undefined}
+                    disabled={!long}
                     onClick={() => setExpanded((v) => !v)}
-                    aria-expanded={open}
-                    className="reviews-more mt-6 flex cursor-pointer items-center gap-2 text-[16px] leading-none text-cream/60 transition-colors hover:text-cream md:text-[18px]"
+                    aria-expanded={long ? open : undefined}
+                    className={`${long ? "reviews-more" : "max-md:invisible md:hidden"} mt-6 flex cursor-pointer items-center gap-2 text-[16px] leading-none text-cream/60 transition-colors hover:text-cream md:text-[18px]`}
                   >
                     {open ? copy.less : copy.more}
                     <svg width="12" height="8" viewBox="0 0 12 8" fill="none" aria-hidden className={`transition-transform duration-300 ${open ? "rotate-180" : ""}`}>
                       <path d="M1 1.5l5 5 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </button>
-                )}
               </div>
             );
           })}
