@@ -7,6 +7,28 @@ import { Icons3D } from "./Icons3D";
 import { DotGrid } from "./DotGrid";
 
 
+// Форма волны в долях ширины и высоты svg (0..1): ровный старт у левого края внизу, плавный подъём,
+// две волны и крутой подъём, который уходит в правый край. Кривые Безье: [c1x, c1y, c2x, c2y, x, y].
+const WAVE_START: [number, number] = [-0.02, 0.95];
+const WAVE: number[][] = [
+  [0.08, 0.95, 0.2, 0.9, 0.3, 0.77],
+  [0.4, 0.64, 0.46, 0.4, 0.54, 0.4],
+  [0.61, 0.4, 0.64, 0.68, 0.69, 0.68],
+  [0.74, 0.68, 0.77, 0.28, 0.82, 0.28],
+  [0.86, 0.28, 0.87, 0.46, 0.9, 0.46],
+  [0.94, 0.46, 0.96, 0.12, 1.02, 0.04],
+];
+// на телефоне узко: одна мягкая волна и подъём к правому краю, иначе изгибы сжимаются в острые пики
+const WAVE_MOBILE: number[][] = [
+  [0.2, 0.95, 0.35, 0.58, 0.5, 0.55],
+  [0.64, 0.52, 0.74, 0.76, 0.85, 0.56],
+  [0.92, 0.43, 0.96, 0.15, 1.03, 0.05],
+];
+function wavePath(w: number, h: number) {
+  const pt = (x: number, y: number) => `${(x * w).toFixed(1)} ${(y * h).toFixed(1)}`;
+  return `M ${pt(...WAVE_START)} ` + (w < 768 ? WAVE_MOBILE : WAVE).map((c) => `C ${pt(c[0], c[1])}, ${pt(c[2], c[3])}, ${pt(c[4], c[5])}`).join(" ");
+}
+
 /** Тёмная закреплённая секция (закрепление короткое, 60vh, чтобы блок можно было быстро пролистать): слова «загораются» по мере скролла, снизу рисуется линия, вокруг плавают 3D-иконки. */
 export function Statement() {
   const { statement } = useContent();
@@ -22,19 +44,47 @@ export function Statement() {
       onUpdate: (self) => (progress.current = self.progress),
     });
 
+    // линия строится в настоящих пикселях svg (viewBox = размер на экране), без растяжения:
+    // тогда длина пути совпадает с длиной на экране и скрытая линия не выглядывает «хвостиком»
+    const svg = root.querySelector<SVGSVGElement>(".wave-svg");
+    const path = root.querySelector<SVGPathElement>(".wave-path");
+    const draw = { p: 0 };
+    let len = 0;
+    const applyDraw = () => {
+      if (path && len) path.style.strokeDashoffset = `${len * (1 - draw.p)}`;
+    };
+    const layout = () => {
+      if (!svg || !path) return;
+      const { width: w, height: h } = svg.getBoundingClientRect();
+      if (!w || !h) return;
+      svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+      path.setAttribute("d", wavePath(w, h));
+      len = path.getTotalLength();
+      path.style.strokeDasharray = `${len} ${len}`;
+      applyDraw();
+    };
+    layout();
+    const ro = new ResizeObserver(layout);
+    if (svg) ro.observe(svg);
+
     const mm = gsap.matchMedia();
     mm.add(MOTION_OK, () => {
-      const path = root.querySelector<SVGPathElement>(".wave-path");
-      const len = path?.getTotalLength() ?? 0;
-      if (path) gsap.set(path, { strokeDasharray: len, strokeDashoffset: len });
+      draw.p = 0;
+      applyDraw();
 
       const tl = gsap.timeline({
         scrollTrigger: { trigger: root, start: "top top", end: "bottom bottom", scrub: 0.6 },
       });
       tl.from(q(".statement-line"), { scaleX: 0, duration: 0.3, ease: "power2.out" }, 0);
+      tl.to(draw, { p: 1, duration: 0.9, ease: "none", onUpdate: applyDraw }, 0.25);
 
-      if (path) tl.to(path, { strokeDashoffset: 0, duration: 0.9, ease: "none" }, 0.25);
+      return () => {
+        draw.p = 1;
+        applyDraw();
+      };
     });
+
+    return () => ro.disconnect();
   });
 
   // слова загораются быстро, как в референсе: начинают, пока секция въезжает на экран,
@@ -94,20 +144,9 @@ export function Statement() {
         </div>
 
         {/* линия-волна и значок на ней */}
-        <svg
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-[34%] w-full"
-          viewBox="0 0 1440 260"
-          preserveAspectRatio="none"
-          fill="none"
-          aria-hidden
-        >
-          <path
-            className="wave-path"
-            d="M-20 250 C 200 230, 380 140, 560 150 S 660 200, 720 190 S 820 120, 900 140 S 1180 230, 1300 120 S 1420 10, 1460 -10"
-            stroke="#f7f1ed"
-            strokeWidth="3"
-            vectorEffect="non-scaling-stroke"
-          />
+        <svg className="wave-svg pointer-events-none absolute inset-x-0 bottom-0 h-[34%] w-full md:h-[45%]" fill="none" aria-hidden>
+          {/* d и viewBox выставляются в layout() под реальный размер */}
+          <path className="wave-path" stroke="#f7f1ed" strokeWidth="3" strokeLinecap="round" />
         </svg>
         {/* иконки поверх текста (canvas не перехватывает клики) */}
         <Icons3D progress={progress} customIconSrc={statement.customIcon} className="absolute inset-0 z-20" />

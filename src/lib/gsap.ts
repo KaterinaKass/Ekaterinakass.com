@@ -16,14 +16,13 @@ export const MOTION_OK = "(prefers-reduced-motion: no-preference)";
  */
 export function useGsap(
   scope: RefObject<HTMLElement | null>,
-  setup: (ctx: { q: (sel: string) => HTMLElement[]; root: HTMLElement }) => void,
+  setup: (ctx: { q: (sel: string) => HTMLElement[]; root: HTMLElement }) => void | (() => void),
 ) {
   useLayoutEffect(() => {
     const root = scope.current;
     if (!root) return;
-    const ctx = gsap.context(() => {
-      setup({ q: (sel) => gsap.utils.toArray<HTMLElement>(sel, root), root });
-    }, root);
+    // функция, которую вернул setup, GSAP вызовет при revert (уборка наблюдателей и т. п.)
+    const ctx = gsap.context(() => setup({ q: (sel) => gsap.utils.toArray<HTMLElement>(sel, root), root }), root);
     return () => ctx.revert();
     // setup намеренно вызывается один раз
     // eslint-disable-next-line react-hooks/exhaustive-deps

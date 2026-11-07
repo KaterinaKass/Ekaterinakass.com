@@ -446,14 +446,18 @@ export function Icons3D({ progress, customIconSrc, className = "" }: Props) {
       //  Figma: 15.5% высоты экрана (мобильный 14.9%); Claude: 18.7% (мобильный 11.9%);
       //  плашка: 109 px от 1536, 96 px на 1280–1535, 87 px на 1024–1279, 109 px на 768–1023, 20.9vw на мобильном.
       const plateDesktopPx = (w: number) => (w >= 1536 ? 109 : w >= 1280 ? 96 : w >= 1024 ? 87 : 109);
+      // от 1024 px: нижние две крупнее и по высоте экрана, как верхние (оптически вровень с Figma и Claude:
+      // плашка — сплошной квадрат, поэтому чуть меньше по габариту; у курсора габарит включает подпись)
+      const wide = (w: number) => w >= 1024;
+      const plateSize = (w: number, h: number) => (w < 768 ? 0.209 * w : wide(w) ? 0.135 * h : plateDesktopPx(w));
       const items = [
-        // fx/fy — десктоп; mfx/mfy — мобильный (расстановка как в референсе: Figma слева сверху,
-        // вторая иконка правее над текстом, плашка с пером под текстом на линии)
-        { obj: figmaIcon, base: 2.55, size: (w: number, h: number) => (w < 768 ? 0.149 : 0.1555) * h, fx: -0.34, fy: 0.22, mfx: -0.28, mfy: 0.32, appear: 0.05, rot: [0.15, -0.45, -0.12], phase: 0 },
-        { obj: slot, base: 1.6, size: (w: number, h: number) => (w < 768 ? 0.119 : 0.187) * h, fx: 0.36, fy: 0.22, mfx: 0.14, mfy: 0.27, appear: 0.18, rot: [-0.2, 0.5, 0.08], phase: 1.7 },
-        // плашка «перо» сдвинута влево, справа от неё — стрелка с именем
-        { obj: plate, base: 1.4, size: (w: number) => (w < 768 ? 0.209 * w : plateDesktopPx(w)), fx: -0.1, fy: -0.28, mfx: -0.24, mfy: -0.3, appear: 0.3, rot: [-0.35, 0.15, 0.35], phase: 3.1 },
-        { obj: cursor, base: cursorBase, size: (w: number) => (w < 768 ? 0.34 * w : plateDesktopPx(w) * 1.7), fx: 0.13, fy: -0.27, mfx: 0.17, mfy: -0.27, appear: 0.38, rot: [0.1, -0.2, -0.12], phase: 4.4 },
+        // fx/fy — десктоп (wfx/wfy — от 1024 px, ближе к углам); mfx/mfy — мобильный (расстановка как в референсе:
+        // Figma слева сверху, вторая иконка правее над текстом, плашка с пером под текстом на линии)
+        { obj: figmaIcon, base: 2.55, size: (w: number, h: number) => (w < 768 ? 0.149 : 0.1555) * h, fx: -0.34, fy: 0.22, wfx: -0.37, wfy: 0.25, mfx: -0.28, mfy: 0.32, appear: 0.05, rot: [0.15, -0.45, -0.12], phase: 0 },
+        { obj: slot, base: 1.6, size: (w: number, h: number) => (w < 768 ? 0.119 : 0.187) * h, fx: 0.36, fy: 0.22, wfx: 0.38, wfy: 0.25, mfx: 0.14, mfy: 0.27, appear: 0.18, rot: [-0.2, 0.5, 0.08], phase: 1.7 },
+        // плашка «перо» слева, стрелка с именем справа
+        { obj: plate, base: 1.4, size: plateSize, fx: -0.1, fy: -0.28, wfx: -0.25, wfy: -0.3, mfx: -0.24, mfy: -0.3, appear: 0.3, rot: [-0.35, 0.15, 0.35], phase: 3.1 },
+        { obj: cursor, base: cursorBase, size: (w: number, h: number) => (w < 768 ? 0.34 * w : plateSize(w, h) * 1.75), fx: 0.13, fy: -0.27, wfx: 0.26, wfy: -0.29, mfx: 0.17, mfy: -0.27, appear: 0.38, rot: [0.1, -0.2, -0.12], phase: 4.4 },
       ];
       items.forEach((it) => scene.add(it.obj));
 
@@ -461,6 +465,7 @@ export function Icons3D({ progress, customIconSrc, className = "" }: Props) {
       let viewW = 1;
       let viewH = 1;
       let narrow = false;
+      let isWide = false;
       // базовый масштаб каждой иконки, чтобы на экране она была size(w, h) пикселей
       let baseScale = items.map(() => 1);
       const resize = () => {
@@ -473,6 +478,7 @@ export function Icons3D({ progress, customIconSrc, className = "" }: Props) {
         viewH = 2 * camera.position.z * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
         viewW = viewH * camera.aspect;
         narrow = w < 700;
+        isWide = wide(window.innerWidth);
         const pxPerUnit = h / viewH;
         baseScale = items.map((it) => it.size(window.innerWidth, h) / pxPerUnit / it.base);
       };
@@ -510,8 +516,8 @@ export function Icons3D({ progress, customIconSrc, className = "" }: Props) {
           it.obj.scale.setScalar(Math.max(s, 0.0001));
           it.obj.visible = a > 0.001;
           it.obj.position.set(
-            (narrow ? it.mfx : it.fx) * viewW + mouse.x * 0.15,
-            (narrow ? it.mfy : it.fy) * viewH + Math.sin(t * 0.9 + it.phase) * 0.12 + (1 - a) * -0.8 + (p - 0.5) * 0.6,
+            (narrow ? it.mfx : isWide ? it.wfx : it.fx) * viewW + mouse.x * 0.15,
+            (narrow ? it.mfy : isWide ? it.wfy : it.fy) * viewH + Math.sin(t * 0.9 + it.phase) * 0.12 + (1 - a) * -0.8 + (p - 0.5) * 0.6,
             0,
           );
           it.obj.rotation.set(
