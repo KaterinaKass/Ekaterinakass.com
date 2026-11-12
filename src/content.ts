@@ -65,8 +65,8 @@ export const content = {
     title: "Work I've shipped",
     subtitle: "Products I've designed and launched, from first flows to features people use every day.",
     // кнопка ведёт к Selected work; пока тот блок скрыт — кнопки нет (cta: ""). Вернуть: cta: "See all work"
-    cta: "",
-    ctaHref: "#work",
+    cta: "See all work",
+    ctaHref: "/work",
     items: [
       { name: "Cyberr", category: "Technical tests", href: "/work/cyberr-technical-tests", cover: "/images/cases/cyberr-tests/Tests-Tests.webp" },
       { name: "Cyberr", category: "Onboarding", href: "/work/cyberr-onboarding", cover: "/images/cases/cyberr-onboarding/Onb-review.webp" },
@@ -277,7 +277,7 @@ export const content = {
   menu: {
     links: [
       { label: "Home", href: "#top" },
-      { label: "Work", href: "#shipped" }, // пока Selected work (#work) скрыт
+      { label: "Work", href: "/work" }, // отдельная страница со всеми проектами
       { label: "About", href: "/about" }, // отдельная страница; ссылки с "/" меню не дополняет префиксом
       // form: true — пункт открывает форму заявки (как «Start a conversation» в футере), а не ведёт к футеру
       { label: "Contact", href: "#contact", form: true },
@@ -288,6 +288,66 @@ export const content = {
     close: "Close",
     // переключатель языка рядом с кнопкой меню
     language: "Language",
+  },
+
+  // отдельная страница /work: все проекты списком с фильтром по категориям (как sarottofabio.com/work, без list/grid)
+  work: {
+    meta: {
+      title: "Work — Ekaterina Kasakina",
+      description: "Case studies in product design: B2B and B2C products, mobile apps, SaaS and AI.",
+    },
+    title: "Work I've shipped.",
+    intro:
+      "Each case starts with a real business problem, then walks through the decisions, the trade-offs and where it landed. Pick whatever is closest to your context.",
+    filterLabel: "Filter projects by category",
+    all: "All",
+    // порядок фильтров; ключи — в tags у проектов
+    categories: [
+      { id: "b2c", label: "B2C" },
+      { id: "b2b", label: "B2B" },
+      { id: "mobile", label: "App Mobile" },
+      { id: "saas", label: "SaaS" },
+      { id: "ai", label: "AI" },
+    ],
+    open: "Open case",
+    soon: "Coming soon",
+    empty: "No projects in this category yet.",
+    // years — период работы; result + resultNote — главный итог (крупно + подпись). Пустое поле не показывается.
+    // cover / art — превью у курсора, как обложки в «Work I've shipped».
+    // ЗАГЛУШКИ: годы, итоги и теги Revolut и лендингов — заменить настоящими.
+    items: [
+      {
+        name: "Cyberr technical tests",
+        href: "/work/cyberr-technical-tests",
+        tags: ["b2b", "saas", "ai"],
+        years: "",
+        result: "Skills, not CVs",
+        resultNote: "Practical tests for security hiring",
+        cover: "/images/cases/cyberr-tests/Tests-Tests.webp",
+      },
+      {
+        name: "Cyberr onboarding",
+        href: "/work/cyberr-onboarding",
+        tags: ["b2b", "saas", "ai"],
+        years: "",
+        result: "10 steps",
+        resultNote: "From resume to a profile ready for AI matching",
+        cover: "/images/cases/cyberr-onboarding/Onb-review.webp",
+      },
+      { name: "Revolut", href: "", tags: ["b2c", "mobile"], years: "", result: "", resultNote: "", art: "phone" },
+      { name: "Landing #1", href: "", tags: ["b2c"], years: "", result: "", resultNote: "", art: "gradient" },
+      { name: "Landing #2", href: "", tags: ["b2b", "saas"], years: "", result: "", resultNote: "", art: "gradient" },
+      { name: "Landing #3", href: "", tags: ["b2b", "ai"], years: "", result: "", resultNote: "", art: "gradient" },
+    ] as {
+      name: string;
+      href: string;
+      tags: string[];
+      years: string;
+      result: string;
+      resultNote: string;
+      cover?: string;
+      art?: "phone" | "gradient";
+    }[],
   },
 
   // общие подписи страниц кейсов (CyberrCase.tsx)

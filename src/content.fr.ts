@@ -56,8 +56,8 @@ export const contentFr: Content = {
   shipped: {
     title: "Projets livrés",
     subtitle: "Des produits que j’ai conçus et lancés, des premiers parcours aux fonctionnalités utilisées au quotidien.",
-    cta: "",
-    ctaHref: "#work",
+    cta: "Voir tous les projets",
+    ctaHref: "/work",
     items: [
       { name: "Cyberr", category: "Tests techniques", href: "/work/cyberr-technical-tests", cover: "/images/cases/cyberr-tests/Tests-Tests.webp" },
       { name: "Cyberr", category: "Onboarding", href: "/work/cyberr-onboarding", cover: "/images/cases/cyberr-onboarding/Onb-review.webp" },
@@ -213,7 +213,7 @@ export const contentFr: Content = {
   menu: {
     links: [
       { label: "Accueil", href: "#top" },
-      { label: "Projets", href: "#shipped" },
+      { label: "Projets", href: "/work" },
       { label: "À propos", href: "/about" },
       { label: "Contact", href: "#contact", form: true },
     ],
@@ -222,6 +222,52 @@ export const contentFr: Content = {
     open: "Menu",
     close: "Fermer",
     language: "Langue",
+  },
+
+  work: {
+    meta: {
+      title: "Projets — Ekaterina Kasakina",
+      description: "Études de cas en product design : produits B2B et B2C, applications mobiles, SaaS et IA.",
+    },
+    title: "Projets livrés.",
+    intro:
+      "Chaque cas part d’un vrai problème business, puis détaille les décisions, les compromis et le résultat. Commencez par celui qui ressemble le plus à votre contexte.",
+    filterLabel: "Filtrer les projets par catégorie",
+    all: "Tous",
+    categories: [
+      { id: "b2c", label: "B2C" },
+      { id: "b2b", label: "B2B" },
+      { id: "mobile", label: "App mobile" },
+      { id: "saas", label: "SaaS" },
+      { id: "ai", label: "IA" },
+    ],
+    open: "Voir le cas",
+    soon: "Bientôt",
+    empty: "Pas encore de projet dans cette catégorie.",
+    items: [
+      {
+        name: "Tests techniques Cyberr",
+        href: "/work/cyberr-technical-tests",
+        tags: ["b2b", "saas", "ai"],
+        years: "",
+        result: "Les compétences, pas le CV",
+        resultNote: "Des tests pratiques pour recruter en cybersécurité",
+        cover: "/images/cases/cyberr-tests/Tests-Tests.webp",
+      },
+      {
+        name: "Onboarding Cyberr",
+        href: "/work/cyberr-onboarding",
+        tags: ["b2b", "saas", "ai"],
+        years: "",
+        result: "10 étapes",
+        resultNote: "Du CV à un profil prêt pour le matching IA",
+        cover: "/images/cases/cyberr-onboarding/Onb-review.webp",
+      },
+      { name: "Revolut", href: "", tags: ["b2c", "mobile"], years: "", result: "", resultNote: "", art: "phone" as const },
+      { name: "Landing #1", href: "", tags: ["b2c"], years: "", result: "", resultNote: "", art: "gradient" as const },
+      { name: "Landing #2", href: "", tags: ["b2b", "saas"], years: "", result: "", resultNote: "", art: "gradient" as const },
+      { name: "Landing #3", href: "", tags: ["b2b", "ai"], years: "", result: "", resultNote: "", art: "gradient" as const },
+    ],
   },
 
   caseStudy: {
