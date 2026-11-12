@@ -1,6 +1,6 @@
 # Ekaterina Kasakina — портфолио
 
-Next.js (App Router) + Tailwind + GSAP/Lenis + three.js. Продакшен: https://kate-gules.vercel.app
+Next.js (App Router) + Tailwind + GSAP/Lenis + three.js. Продакшен: https://ekaterinakass-com.vercel.app
 
 ## Где что лежит
 
@@ -17,5 +17,5 @@ Next.js (App Router) + Tailwind + GSAP/Lenis + three.js. Продакшен: htt
 npm install      # установить зависимости (один раз)
 npm run dev      # локально
 npm run build    # проверка сборки
-vercel --prod    # деплой в продакшен
+# публикация: push в master репозитория KaterinaKass/Ekaterinakass.com — Vercel собирает его сам
 ```

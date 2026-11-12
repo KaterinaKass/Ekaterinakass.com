@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 // Адрес сайта для абсолютных ссылок на превью (og:image). На Vercel берётся прод-домен проекта.
 export const SITE_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
   ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-  : "https://kate-gules.vercel.app";
+  : "https://ekaterinakass-com.vercel.app";
 
 const SITE_NAME = "Ekaterina Kasakina";
 
