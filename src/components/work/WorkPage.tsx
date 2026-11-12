@@ -80,7 +80,6 @@ export function WorkPage() {
     gsap.to(preview.current, {
       scale: i === null ? 0.6 : 1,
       autoAlpha: i === null ? 0 : 1,
-      rotate: i === null ? 0 : -4,
       duration: i === null ? 0.25 : 0.45,
       ease: i === null ? "power2.out" : "back.out(1.6)",
       overwrite: "auto",
