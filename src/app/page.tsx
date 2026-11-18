@@ -2,8 +2,8 @@ import { SmoothScroll } from "@/components/SmoothScroll";
 import { Hero } from "@/components/Hero";
 import { Portrait } from "@/components/Portrait";
 import { Statement } from "@/components/Statement";
-// Services и Projects временно скрыты (не удалены): вернуть — раскомментировать импорт и строку в разметке
-// import { Services } from "@/components/Services";
+// Projects временно скрыт (не удалён): вернуть — раскомментировать импорт и строку в разметке
+import { Services } from "@/components/Services";
 import { ShippedWork } from "@/components/ShippedWork";
 import { ProcessSection } from "@/components/ProcessSection";
 // import { Projects } from "@/components/Projects";
@@ -22,10 +22,12 @@ export default function Home() {
         <Hero />
         <Portrait />
         <Statement />
-        {/* <Services /> */}
         <ShippedWork />
         <RemountOnLocale>
           <ProcessSection />
+        </RemountOnLocale>
+        <RemountOnLocale>
+          <Services />
         </RemountOnLocale>
         {/* <Projects /> */}
         <RemountOnLocale>

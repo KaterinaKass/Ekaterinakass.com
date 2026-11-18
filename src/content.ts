@@ -48,15 +48,26 @@ export const content = {
     ] as { text: string; bold?: boolean; br?: boolean }[],
   },
 
+  // блок «Services» (по образцу intrepide.lu), стоит под «Work I've shipped»: заголовок и подзаголовок → слайдер квадратных карточек → кнопка и текст в две колонки.
+  // image — квадратная обложка карточки (на десктопе показывается ч/б, цветная при наведении)
   services: {
-    intro: "I help teams turn ideas into",
-    // кнопка при наведении на превью, ведёт к блоку с работами
-    hoverCta: "View all works below",
+    title: "Services",
+    subtitle: "I help teams turn bold ideas into products people trust",
+    // кружок за курсором на карточке (ведёт к работам)
+    hoverCta: "View work",
+    hoverHref: "/work",
+    prev: "Previous service",
+    next: "Next service",
+    // названия услуг — как на intrepide.lu
     items: [
-      { title: "Mobile apps", image: "/placeholders/service-1.svg" },
-      { title: "Web platforms", image: "/placeholders/service-2.svg" },
-      { title: "Landings", image: "/placeholders/service-3.svg" },
+      { title: "Branding", image: "/placeholders/service-1.svg" },
+      { title: "Web", image: "/placeholders/service-2.svg" },
+      { title: "Content creation", image: "/placeholders/service-3.svg" },
+      { title: "Digital marketing", image: "/images/cases/placeholders/gradient-1.webp" },
+      { title: "Studio photo + video", image: "/images/cases/placeholders/gradient-2.webp" },
     ],
+    outro:
+      "I join teams at any stage: from research and first flows to a polished interface and a design system that scales. I care about the details people notice and the ones they don’t, and I keep product, developers and business on the same page. The result is a product that looks calm, feels clear and is ready to grow.",
   },
 
   // блок «Work I've shipped»: наклонённые карточки, которые въезжают и едут лентой при прокрутке (перед Selected work)
@@ -64,9 +75,12 @@ export const content = {
   shipped: {
     title: "Work I've shipped",
     subtitle: "Products I've designed and launched, from first flows to features people use every day.",
-    // кнопка ведёт к Selected work; пока тот блок скрыт — кнопки нет (cta: ""). Вернуть: cta: "See all work"
+    // кнопка «See all work» под карточками сейчас не показывается (под лентой только стрелки); текст оставлен на случай возврата
     cta: "See all work",
     ctaHref: "/work",
+    // стрелки под карточками (подписи для экранных читалок)
+    prev: "Previous project",
+    next: "Next project",
     items: [
       { name: "Cyberr", category: "Technical tests", href: "/work/cyberr-technical-tests", cover: "/images/cases/cyberr-tests/Tests-Tests.webp" },
       { name: "Cyberr", category: "Onboarding", href: "/work/cyberr-onboarding", cover: "/images/cases/cyberr-onboarding/Onb-review.webp" },

@@ -44,13 +44,23 @@ export const contentFr: Content = {
   },
 
   services: {
-    intro: "J’aide les équipes à transformer leurs idées en",
-    hoverCta: "Voir tous les projets ci-dessous",
+    title: "Services",
+    subtitle: "J’aide les équipes à transformer leurs idées audacieuses en produits de confiance",
+    // кружок за курсором на карточке (ведёт к работам)
+    hoverCta: "Voir les projets",
+    hoverHref: "/work",
+    prev: "Service précédent",
+    next: "Service suivant",
+    // названия услуг — как на intrepide.lu
     items: [
-      { title: "Applications mobiles", image: "/placeholders/service-1.svg" },
-      { title: "Plateformes web", image: "/placeholders/service-2.svg" },
-      { title: "Landing pages", image: "/placeholders/service-3.svg" },
+      { title: "Branding", image: "/placeholders/service-1.svg" },
+      { title: "Web", image: "/placeholders/service-2.svg" },
+      { title: "Création de contenu", image: "/placeholders/service-3.svg" },
+      { title: "Marketing digital", image: "/images/cases/placeholders/gradient-1.webp" },
+      { title: "Studio photo + vidéo", image: "/images/cases/placeholders/gradient-2.webp" },
     ],
+    outro:
+      "Je rejoins les équipes à toutes les étapes : de la recherche et des premiers parcours jusqu’à une interface aboutie et un design system qui grandit avec le produit. Je soigne les détails que l’on remarque et ceux que l’on ne remarque pas, et j’aligne produit, développeurs et business. Résultat : un produit serein, clair et prêt à évoluer.",
   },
 
   shipped: {
@@ -58,6 +68,9 @@ export const contentFr: Content = {
     subtitle: "Des produits que j’ai conçus et lancés, des premiers parcours aux fonctionnalités utilisées au quotidien.",
     cta: "Voir tous les projets",
     ctaHref: "/work",
+    // стрелки под карточками (подписи для экранных читалок)
+    prev: "Projet précédent",
+    next: "Projet suivant",
     items: [
       { name: "Cyberr", category: "Tests techniques", href: "/work/cyberr-technical-tests", cover: "/images/cases/cyberr-tests/Tests-Tests.webp" },
       { name: "Cyberr", category: "Onboarding", href: "/work/cyberr-onboarding", cover: "/images/cases/cyberr-onboarding/Onb-review.webp" },

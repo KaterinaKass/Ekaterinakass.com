@@ -1,10 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { content } from "@/content";
 import { useContent } from "@/i18n/LocaleProvider";
 import { GradientCover, PhoneCover } from "./CoverArt";
+import { SliderArrows } from "./SliderArrows";
 
 const { shipped } = content;
 const N = shipped.items.length;
@@ -39,7 +40,7 @@ const MOTION = {
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 /** Въезд карточки: доезжает с лёгким перелётом (~3 %). */
-const backOut = (u: number) => 1 + 1.9 * Math.pow(u - 1, 3) + 0.9 * Math.pow(u - 1, 2);
+export const backOut = (u: number) => 1 + 1.9 * Math.pow(u - 1, 3) + 0.9 * Math.pow(u - 1, 2);
 const range = (v: number, [a, b]: readonly [number, number]) => easeInOutCubic(clamp((v - a) / (b - a), 0, 1));
 
 /** Детерминированный генератор (mulberry32): раскладка одинаковая при каждой загрузке. */
@@ -53,10 +54,15 @@ function seeded(seed: number) {
   };
 }
 
-const JITTER = shipped.items.map((_, k) => {
+/** Случайный крен, сдвиг и добавка к длительности въезда k-й карточки (тот же разброс используют карточки Services). */
+export function cardJitter(k: number) {
   const r = seeded(MOTION.seed(k));
   return { rot: (r() - 0.5) * MOTION.jitterRot, x: (r() - 0.5) * MOTION.jitterX, dur: MOTION.jitterDur * r() };
-});
+}
+/** Числа въезда карточек: начало, сдвиг на каждую следующую, длительность, масштаб в начале (доли фазы въезда). */
+export const CARD_ENTER = { start: MOTION.cardStart, stagger: MOTION.cardStagger, dur: MOTION.cardDur, scaleFrom: MOTION.scaleFrom };
+
+const JITTER = shipped.items.map((_, k) => cardJitter(k));
 
 const cardW = (w: number) => clamp(Math.round(0.3 * w), 420, 700);
 
@@ -118,7 +124,8 @@ function CardBody({ item, index }: { item: (typeof shipped.items)[number]; index
 
 /** Копия боковых линий сайта (FrameLines) внутри блока: блок стоит выше глобальных линий,
  *  поэтому они рисуются здесь — под карточками, но над фоном. */
-function SideLines() {
+/** Вертикальные линии рамки внутри блока: лежат под карточками (общие линии FrameLines блок перекрывает). */
+export function SideLines() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-y-0 right-[5%] left-[5%] z-[2]">
       <span className="absolute inset-y-0 left-0 w-px bg-[#ACACAC]" />
@@ -127,11 +134,11 @@ function SideLines() {
   );
 }
 
-const CARD_CLASS = "[container-type:size] overflow-hidden rounded-2xl border border-black/[6%] shadow-[0_22px_48px_rgba(36,36,36,0.16),0_7px_16px_rgba(36,36,36,0.08)] select-none";
+export const CARD_CLASS = "[container-type:size] overflow-hidden rounded-2xl border border-black/[6%] shadow-[0_22px_48px_rgba(36,36,36,0.16),0_7px_16px_rgba(36,36,36,0.08)] select-none";
 
 /**
  * «Work I've shipped». Десктоп с мышью: сцена закреплена, карточки вылетают снизу с креном и встают веером,
- * дальше прокрутка ведёт ряд влево; вставший ряд можно тянуть мышью и листать стрелками.
+ * дальше прокрутка ведёт ряд влево; вставший ряд можно тянуть мышью, листать клавишами и стрелками под карточками.
  * Телефон, тач и «меньше движения»: горизонтальная лента со snap, без анимации.
  */
 /** Вид блока по устройству: "scene" или размер карточки ленты "w×h". Читается один раз после гидрации. */
@@ -158,12 +165,31 @@ export function ShippedWork() {
 function List({ card }: { card: { w: number; h: number } }) {
   const { shipped } = useContent();
   const pad = `max(calc((100vw - ${card.w}px) / 2), 16px)`;
+  const strip = useRef<HTMLDivElement>(null);
+  const [edge, setEdge] = useState({ start: true, end: false });
+  useEffect(() => {
+    const t = strip.current!;
+    const update = () => setEdge({ start: t.scrollLeft <= 4, end: t.scrollLeft >= t.scrollWidth - t.clientWidth - 4 });
+    update();
+    t.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      t.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+  // стрелка листает на одну карточку (ширина + зазор 16px), snap ставит её по центру
+  const go = (dir: -1 | 1) => {
+    const smooth = window.matchMedia("(prefers-reduced-motion: no-preference)").matches;
+    strip.current?.scrollBy({ left: dir * (card.w + 16), behavior: smooth ? "smooth" : "auto" });
+  };
   return (
     <section id="shipped" className="relative z-[45] flex h-svh w-full flex-col items-center gap-[clamp(16px,3vh,32px)] bg-cream pt-[10vh] pb-[112px] lg:pb-[clamp(12px,3.5vh,36px)]">
       <SideLines />
       <Header className="relative z-[3] shrink-0" />
       {/* -my-20 / py-20: запас под тень карточек, иначе лента (overflow) срезает её; раскладка не меняется */}
       <div
+        ref={strip}
         className="relative z-[3] -my-20 flex min-h-0 w-full flex-1 snap-x snap-mandatory items-center gap-4 overflow-x-auto overflow-y-hidden py-20 overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         style={{ paddingInline: pad, scrollPaddingInline: pad }}
       >
@@ -173,11 +199,15 @@ function List({ card }: { card: { w: number; h: number } }) {
           </a>
         ))}
       </div>
-      {shipped.cta && (
-        <a href={shipped.ctaHref} className="relative z-[3] shrink-0 rounded-full bg-ink px-6 py-[14px] text-[16px] font-medium text-cream">
-          {shipped.cta}
-        </a>
-      )}
+      <SliderArrows
+        className="relative z-[3] shrink-0"
+        prevLabel={shipped.prev}
+        nextLabel={shipped.next}
+        onPrev={() => go(-1)}
+        onNext={() => go(1)}
+        prevDisabled={edge.start}
+        nextDisabled={edge.end}
+      />
     </section>
   );
 }
@@ -191,6 +221,9 @@ function Scene() {
   const cta = useRef<HTMLDivElement>(null);
   const cards = useRef<HTMLAnchorElement[]>([]);
   const moved = useRef(false); // был перетаск — клик по карточке гасим
+  const prevBtn = useRef<HTMLButtonElement>(null);
+  const nextBtn = useRef<HTMLButtonElement>(null);
+  const nav = useRef<(dir: -1 | 1) => void>(() => {});
 
   useEffect(() => {
     const el = wrap.current!;
@@ -246,6 +279,9 @@ function Scene() {
       const t = range(enter, MOTION.titleMove);
       title.current!.style.transform = `translateY(${28 * (1 - t)}px) scale(${0.97 + 0.03 * t})`;
       cta.current!.style.opacity = String(range(enter, MOTION.ctaIn));
+      // стрелки бледнеют, когда ряд упёрся в край
+      if (prevBtn.current) prevBtn.current.disabled = shift > -1;
+      if (nextBtn.current) nextBtn.current.disabled = shift < -tr + 1;
       cta.current!.style.pointerEvents = settled > 0.8 ? "auto" : "none";
     }
 
@@ -284,6 +320,31 @@ function Scene() {
       pid = -1; pending = false; dragging = false;
       render();
     };
+    // стрелки под карточками: ряд плавно доезжает так, чтобы у левого края встала следующая/предыдущая карточка
+    let navRaf = 0;
+    let navIdx: number | null = null; // карточка, к которой ряд сейчас едет (быстрые клики складываются)
+    nav.current = (dir) => {
+      if (settled < 0.8) return;
+      const { step, travel: tr } = sceneGeom(window.innerWidth, window.innerHeight);
+      const maxIdx = Math.ceil(tr / step - 0.01);
+      const offset = -clamp(-tr * rail + drag, -tr, 0); // насколько ряд уже сдвинут влево, px
+      const base = navIdx ?? (dir > 0 ? Math.floor(offset / step + 0.01) : Math.ceil(offset / step - 0.01));
+      const idx = clamp(base + dir, 0, maxIdx);
+      navIdx = idx;
+      const target = clamp(clamp(-idx * step, -tr, 0) + tr * rail, -tr * (1 - rail), tr * rail);
+      const from = drag;
+      const t0 = performance.now();
+      cancelAnimationFrame(navRaf);
+      const tick = (now: number) => {
+        const u = Math.min(1, (now - t0) / 600);
+        drag = from + (target - from) * (1 - Math.pow(1 - u, 3));
+        render();
+        if (u < 1) navRaf = requestAnimationFrame(tick);
+        else navIdx = null;
+      };
+      navRaf = requestAnimationFrame(tick);
+    };
+
     const key = (e: KeyboardEvent) => {
       if (settled < 0.8 || !pinned()) return;
       const step = railStep(window.innerWidth), tr = travel();
@@ -311,6 +372,7 @@ function Scene() {
       window.removeEventListener("scroll", update);
       window.removeEventListener("resize", update);
       cancelAnimationFrame(raf);
+      cancelAnimationFrame(navRaf);
     };
   }, []);
 
@@ -341,11 +403,7 @@ function Scene() {
         </div>
 
         <div ref={cta} className="absolute inset-x-0 bottom-[6.5%] z-30 flex justify-center" style={{ opacity: 0, pointerEvents: "none" }}>
-          {shipped.cta && (
-            <a href={shipped.ctaHref} className="rounded-full bg-ink px-6 py-[14px] text-[16px] font-medium text-cream">
-              {shipped.cta}
-            </a>
-          )}
+          <SliderArrows prevLabel={shipped.prev} nextLabel={shipped.next} onPrev={() => nav.current(-1)} onNext={() => nav.current(1)} prevRef={prevBtn} nextRef={nextBtn} />
         </div>
       </div>
     </section>

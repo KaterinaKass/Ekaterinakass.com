@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 
 type Props = {
   src: string;
@@ -11,6 +11,8 @@ type Props = {
   columns?: number;
   /** на мобильном холст растягивается на всю ширину экрана, и пиксели слетаются почти от краёв */
   wideOnMobile?: boolean;
+  /** блок, в пределах высоты которого стартуют пиксели (например, имя в футере): по вертикали они не вылетают за него */
+  band?: RefObject<HTMLElement | null>;
 };
 
 // координаты в долях, а не в px: если холст поменяет размер посреди анимации (подгрузился шрифт,
@@ -33,7 +35,7 @@ const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
  * каждый квадрат летит из случайной точки на своё место (снизу вверх по рядам),
  * в конце пиксели сменяются оригиналом. Старт, когда элемент наполовину на экране.
  */
-export function PixelAssemble({ src, aspect, className = "", columns = 36, wideOnMobile = false }: Props) {
+export function PixelAssemble({ src, aspect, className = "", columns = 36, wideOnMobile = false, band }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -87,6 +89,21 @@ export function PixelAssemble({ src, aspect, className = "", columns = 36, wideO
       // широкий режим: пиксели стартуют по всей ширине холста (почти от краёв экрана), как в референсе;
       // обычный — облаком вокруг фигуры
 
+      // полоса по вертикали (доли высоты холста), откуда стартуют пиксели: блок band, обрезанный по холсту
+      let b0 = -Infinity;
+      let b1 = Infinity;
+      const bandEl = band?.current;
+      if (bandEl) {
+        const cr = canvas.getBoundingClientRect();
+        const br = bandEl.getBoundingClientRect();
+        if (cr.height > 0) {
+          b0 = Math.max(0, (br.top - cr.top) / cr.height);
+          b1 = Math.min(1, (br.bottom - cr.top) / cr.height);
+          if (b1 - b0 < 0.05) [b0, b1] = [0, 1];
+        }
+      }
+      const inBand = (v: number) => (bandEl ? Math.min(b1 - 1 / rows, Math.max(b0, v)) : v);
+
       const parts: Particle[] = [];
       for (let y = 0; y < rows; y++) {
         for (let x = 0; x < cols; x++) {
@@ -100,7 +117,7 @@ export function PixelAssemble({ src, aspect, className = "", columns = 36, wideO
             gx,
             gy,
             sx: wide ? 0.03 + Math.random() * 0.94 : gx + Math.cos(ang) * dist,
-            sy: wide ? gy + (Math.random() - 0.5) * 0.9 + 0.1 : gy + Math.sin(ang) * dist * 0.6 * aspect + 0.15,
+            sy: inBand(wide ? gy + (Math.random() - 0.5) * 0.9 + 0.1 : gy + Math.sin(ang) * dist * 0.6 * aspect + 0.15),
             // нижние ряды раньше, плюс немного случайности
             delay: (1 - y / rows) * SPREAD + Math.random() * 0.25,
             color: `rgb(${data[i]},${data[i + 1]},${data[i + 2]})`,
@@ -193,7 +210,7 @@ export function PixelAssemble({ src, aspect, className = "", columns = 36, wideO
       ro.disconnect();
       window.removeEventListener("resize", onResize);
     };
-  }, [src, columns, aspect, wideOnMobile]);
+  }, [src, columns, aspect, wideOnMobile, band]);
 
   return <canvas ref={canvasRef} aria-hidden className={className} style={{ aspectRatio: aspect }} />;
 }

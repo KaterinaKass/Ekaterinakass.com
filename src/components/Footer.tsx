@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, type CSSProperties } from "react";
 import { useContent } from "@/i18n/LocaleProvider";
 import { gsap, MOTION_OK, useGsap } from "@/lib/gsap";
 import { SplitChars } from "./SplitChars";
@@ -58,6 +58,9 @@ function Icon({ name }: { name: "instagram" | "linkedin" | "mail" }) {
   );
 }
 
+/** Амплитуда покачивания персонажа на десктопе, px (вверх и вниз от центра). */
+const AVATAR_BOB = 6;
+
 // кнопка с обводкой на синем: размеры как у CTA сайта, при наведении заливается светлым
 const OUTLINE_BTN =
   "inline-flex items-center justify-center gap-2.5 rounded-full border border-cream/70 px-6 py-[14px] text-[16px] leading-none font-medium text-cream transition-colors duration-200 hover:border-cream hover:bg-cream hover:text-accent md:text-[clamp(16px,1.1vw,20px)]";
@@ -86,6 +89,7 @@ function WhatsAppIcon() {
 export function Footer() {
   const { footer, hero } = useContent();
   const root = useRef<HTMLElement>(null);
+  const nameBox = useRef<HTMLDivElement>(null);
   const [formOpen, setFormOpen] = useState(false);
   const closeForm = useCallback(() => setFormOpen(false), []);
 
@@ -108,9 +112,15 @@ export function Footer() {
       });
 
       // персонаж слегка покачивается только на десктопе; на мобильном стоит на месте, как в референсе
-      // (сборку из пикселей делает PixelAssemble)
+      // (сборку из пикселей делает PixelAssemble). Качается внутренний холст, а не обёртка: у обёртки центрирование
+      // в процентах (−50%), GSAP переписал бы его в пиксели, и после смены высоты блока персонаж съезжал бы вниз/вверх.
+      // Амплитуда ±AVATAR_BOB px укладывается в запас по высоте, поэтому фигура не выходит за блок с именем.
       if (window.matchMedia("(min-width: 768px)").matches)
-        gsap.to(".footer-avatar", { y: -8, duration: 2.2, ease: "sine.inOut", yoyo: true, repeat: -1, delay: 2.5 });
+        gsap.fromTo(
+          ".footer-avatar",
+          { y: AVATAR_BOB },
+          { y: -AVATAR_BOB, duration: 2.2, ease: "sine.inOut", yoyo: true, repeat: -1, delay: 2.5 },
+        );
 
       return () => detach?.();
     });
@@ -121,16 +131,23 @@ export function Footer() {
       {/* имя по центру, персонаж по центру поверх него; на мобильном имя шире экрана и обрезается, как в референсе */}
       <div className="relative flex flex-1 items-center justify-center pt-16">
         {/* размеры как в референсе: на мобильном строки шире экрана (~140%), на десктопе ~76% ширины */}
+        {/* обёртка имени — опора для персонажа: он по высоте ровно в блок с именем и не выходит за него
+            (на десктопе с запасом под покачивание) */}
+        <div ref={nameBox} className="relative">
         <p className="footer-name font-display cursor-default text-center text-[26vw] leading-[0.9] whitespace-nowrap text-[#009AF7] uppercase select-none md:text-[clamp(40px,14vw,240px)]">
           <span className="flex justify-center"><SplitChars text={hero.firstLine} charClass="footer-name-char" /></span>
           <span className="flex justify-center"><SplitChars text={hero.secondLine} charClass="footer-name-char" /></span>
         </p>
-        <PixelAssemble
-          src={footer.avatar}
-          aspect={footer.avatarAspect}
-          wideOnMobile
-          className="footer-avatar pointer-events-none absolute top-[calc(50%+2rem)] left-1/2 h-[min(75%,365px)] w-auto -translate-x-1/2 -translate-y-1/2 md:h-[min(45svh,405px)]"
-        />
+        <div className="pointer-events-none absolute top-1/2 left-1/2 h-full -translate-x-1/2 -translate-y-1/2 md:h-[calc(100%-2*var(--bob))]" style={{ "--bob": `${AVATAR_BOB}px` } as CSSProperties}>
+          <PixelAssemble
+            src={footer.avatar}
+            aspect={footer.avatarAspect}
+            wideOnMobile
+            band={nameBox}
+            className="footer-avatar block h-full w-auto"
+          />
+        </div>
+        </div>
       </div>
 
       <div className="footer-rule mx-[5%] h-px origin-left bg-cream/30" />
