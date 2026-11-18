@@ -173,7 +173,7 @@ export const content = {
       "AI-driven Product Designer with 10 years of experience at top Europe-based high-load projects with a mobile-first approach. I'm curious about solving human problems and helping businesses grow by designing professional services websites and mobile applications.",
       "I work at Cyber.ai, the World's Leading Platform for Cyber Professionals. I collaborate with engineers and stakeholders to understand user needs, conduct user interviews and testing, create wireframes and prototypes, and deliver high-fidelity visual design using Figma, Figma Make, Lovable, Claude + Adobe CS.",
     ],
-    photo: "/images/about/ekaterina.webp",
+    photo: "/images/about/ekaterina-portrait.webp",
     photoAlt: "Ekaterina Kasakina",
     // value крутится одометром (цифры), остальные знаки проявляются
     stats: [

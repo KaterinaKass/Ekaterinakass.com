@@ -108,7 +108,7 @@ function TiltPhoto() {
         fill
         priority
         sizes="(max-width: 768px) 90vw, 480px"
-        className="object-cover object-top select-none"
+        className="object-cover object-[22%_top] select-none"
         draggable={false}
       />
     </div>
